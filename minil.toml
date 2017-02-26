@@ -1,4 +1,5 @@
 name = "App-BorgRestore"
 # badges = ["travis"]
 module_maker="ModuleBuildTiny"
+license="gpl_3"
 
