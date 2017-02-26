@@ -155,33 +155,9 @@ See gpl-3.0.txt for the full license text.
 
 use v5.10;
 
-{
-package Settings;
-	our $borg_repo = "";
-	our $cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME}."/.cache");
-	our @backup_prefixes = (
-		{regex => "^/", replacement => ""},
-	);
-
-	my @configfiles = (
-		sprintf("%s/borg-restore.cfg", $ENV{XDG_CONFIG_HOME} // $ENV{HOME}."/.config"),
-		"/etc/borg-restore.cfg",
-	);
-
-	for my $configfile (@configfiles) {
-		$configfile = Helper::untaint($configfile, qr/.*/);
-		if (-e $configfile) {
-			unless (my $return = do $configfile) {
-				die "couldn't parse $configfile: $@" if $@;
-				die "couldn't do $configfile: $!"    unless defined $return;
-				die "couldn't run $configfile"       unless $return;
-			}
-		}
-	}
-	$cache_path_base = Helper::untaint($cache_path_base, qr/.*/);
-}
-
-package main;
+use App::BorgRestore::DB;
+use App::BorgRestore::Helper;
+use App::BorgRestore::Settings;
 
 use autodie;
 use Cwd qw(abs_path getcwd);
@@ -345,9 +321,9 @@ sub restore {
 	my $archive = shift;
 	my $destination = shift;
 
-	$destination = Helper::untaint($destination, qr(.*));
-	$path = Helper::untaint($path, qr(.*));
-	my $archive_name = Helper::untaint_archive_name($archive->{archive});
+	$destination = App::BorgRestore::Helper::untaint($destination, qr(.*));
+	$path = App::BorgRestore::Helper::untaint($path, qr(.*));
+	my $archive_name = App::BorgRestore::Helper::untaint_archive_name($archive->{archive});
 
 	printf "Restoring %s to %s from archive %s\n", $path, $destination, $archive->{archive};
 
@@ -360,14 +336,14 @@ sub restore {
 	chdir($destination) or die "Failed to chdir: $!";
 
 	my $final_destination = abs_path($basename);
-	$final_destination = Helper::untaint($final_destination, qr(.*));
+	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
 	debug("Removing ".$final_destination);
 	File::Path::remove_tree($final_destination);
 	system(qw(borg extract -v --strip-components), $components_to_strip, "::".$archive_name, $path);
 }
 
 sub get_cache_dir {
-	return "$Settings::cache_path_base/v2";
+	return "$App::BorgRestore::Settings::cache_path_base/v2";
 }
 
 sub get_cache_path {
@@ -542,7 +518,7 @@ sub build_archive_cache {
 sub open_db {
 	my $db_path = shift;
 
-	return DB->new($db_path);
+	return App::BorgRestore::DB->new($db_path);
 }
 
 sub save_node {
@@ -587,9 +563,9 @@ sub update_cache {
 
 sub main {
 	# untaint PATH because we only expect this to run as root
-	$ENV{PATH} = Helper::untaint($ENV{PATH}, qr(.*));
+	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
-	$ENV{BORG_REPO} = $Settings::borg_repo unless $Settings::borg_repo eq "";
+	$ENV{BORG_REPO} = $App::BorgRestore::Settings::borg_repo unless $App::BorgRestore::Settings::borg_repo eq "";
 
 	Getopt::Long::Configure ("bundling");
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s") or pod2usage(2);
@@ -635,7 +611,7 @@ sub main {
 		$destination = dirname($abs_path);
 	}
 	my $backup_path = $abs_path;
-	for my $backup_prefix (@Settings::backup_prefixes) {
+	for my $backup_prefix (@App::BorgRestore::Settings::backup_prefixes) {
 		if ($backup_path =~ m/$backup_prefix->{regex}/) {
 			$backup_path =~ s/$backup_prefix->{regex}/$backup_prefix->{replacement}/;
 			last;
@@ -666,194 +642,3 @@ sub main {
 
 exit main();
 
-package DB;
-use strict;
-use warnings;
-use Data::Dumper;
-use DBI;
-
-sub new {
-	my $class = shift;
-	my $db_path = shift;
-
-	my $self = {};
-	bless $self, $class;
-
-	$self->_open_db($db_path);
-
-	return $self;
-}
-
-sub _open_db {
-	my $self = shift;
-	my $dbfile = shift;
-
-	$self->{dbh} = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {RaiseError => 1, Taint => 1});
-	$self->{dbh}->do("PRAGMA cache_size=-1024000");
-	$self->{dbh}->do("PRAGMA strict=ON");
-}
-
-sub initialize_db {
-	my $self = shift;
-
-	$self->{dbh}->do('create table `files` (`path` text, primary key (`path`)) without rowid;');
-	$self->{dbh}->do('create table `archives` (`archive_name` text unique);');
-}
-
-sub get_archive_names {
-	my $self = shift;
-
-	my @ret;
-
-	my $st = $self->{dbh}->prepare("select `archive_name` from `archives`;");
-	$st->execute();
-	while (my $result = $st->fetchrow_hashref) {
-		push @ret, $result->{archive_name};
-	}
-	return \@ret;
-}
-
-sub get_archive_row_count {
-	my $self = shift;
-
-	my $st = $self->{dbh}->prepare("select count(*) count from `files`;");
-	$st->execute();
-	my $result = $st->fetchrow_hashref;
-	return $result->{count};
-}
-
-sub add_archive_name {
-	my $self = shift;
-	my $archive = shift;
-
-	$archive = Helper::untaint_archive_name($archive);
-
-	my $st = $self->{dbh}->prepare('insert into `archives` (`archive_name`) values (?);');
-	$st->execute($archive);
-
-	$self->_add_column_to_table("files", $archive);
-}
-
-sub _add_column_to_table {
-	my $self = shift;
-	my $table = shift;
-	my $column = shift;
-
-	my $st = $self->{dbh}->prepare('alter table `'.$table.'` add column `'._prefix_archive_id($column).'` integer;');
-	$st->execute();
-}
-
-sub remove_archive {
-	my $self = shift;
-	my $archive = shift;
-
-	$archive = Helper::untaint_archive_name($archive);
-
-	my $archive_id = $self->get_archive_id($archive);
-
-	my @keep_archives = grep {$_ ne $archive;} @{$self->get_archive_names()};
-
-	$self->{dbh}->do('create table `files_new` (`path` text, primary key (`path`)) without rowid;');
-	for my $archive (@keep_archives) {
-		$self->_add_column_to_table("files_new", $archive);
-	}
-
-	my @columns_to_copy = map {'`'._prefix_archive_id($_).'`'} @keep_archives;
-	@columns_to_copy = ('`path`', @columns_to_copy);
-	$self->{dbh}->do('insert into `files_new` select '.join(',', @columns_to_copy).' from files');
-
-	$self->{dbh}->do('drop table `files`');
-
-	$self->{dbh}->do('alter table `files_new` rename to `files`');
-
-	my $st = $self->{dbh}->prepare('delete from `archives` where `archive_name` = ?;');
-	$st->execute($archive);
-}
-
-sub _prefix_archive_id {
-	my $archive = shift;
-
-	$archive = Helper::untaint_archive_name($archive);
-
-	return 'timestamp-'.$archive;
-}
-
-sub get_archive_id {
-	my $self = shift;
-	my $archive = shift;
-
-	return _prefix_archive_id($archive);
-}
-
-sub get_archives_for_path {
-	my $self = shift;
-	my $path = shift;
-
-	my $st = $self->{dbh}->prepare('select * from `files` where `path` = ?;');
-	$st->execute(Helper::untaint($path, qr(.*)));
-
-	my @ret;
-
-	my $result = $st->fetchrow_hashref;
-	my $archives = $self->get_archive_names();
-
-	for my $archive (@$archives) {
-		my $archive_id = $self->get_archive_id($archive);
-		my $timestamp = $result->{$archive_id};
-
-		push @ret, {
-			modification_time => $timestamp,
-			archive => $archive,
-		};
-	}
-
-	return \@ret;
-}
-
-
-sub add_path {
-	my $self = shift;
-	my $archive_id = shift;
-	my $path = shift;
-	my $time = shift;
-
-	my $st = $self->{dbh}->prepare_cached('insert or ignore into `files` (`path`, `'.$archive_id.'`)
-		values(?, ?)');
-	$st->execute($path, $time);
-
-	$st = $self->{dbh}->prepare_cached('update files set `'.$archive_id.'` = ? where `path` = ?');
-	$st->execute($time, $path);
-}
-
-sub begin_work {
-	my $self = shift;
-
-	$self->{dbh}->begin_work();
-}
-
-sub commit {
-	my $self = shift;
-
-	$self->{dbh}->commit();
-}
-
-sub vacuum {
-	my $self = shift;
-
-	$self->{dbh}->do("vacuum");
-}
-
-package Helper;
-
-sub untaint {
-	my $data = shift;
-	my $regex = shift;
-
-	$data =~ m/^($regex)$/ or die "Failed to untaint: $data";
-	return $1;
-}
-
-sub untaint_archive_name {
-	my $archive = shift;
-	return Helper::untaint($archive, qr([a-zA-Z0-9-:+]+));
-}
