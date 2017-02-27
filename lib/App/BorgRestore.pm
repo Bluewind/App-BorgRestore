@@ -18,7 +18,6 @@ use List::Util qw(any all);
 use Pod::Usage;
 use Time::HiRes;
 
-=pod
 =encoding utf-8
 
 =head1 NAME
