@@ -418,22 +418,6 @@ sub handle_removed_archives {
 	}
 }
 
-sub sanitize_db_data {
-	my $data = shift;
-
-	my @ret;
-
-	for my $item (@$data) {
-		if (defined($item)) {
-			push @ret, $item + 0;
-		} else {
-			push @ret, undef;
-		}
-	}
-
-	return \@ret;
-}
-
 sub handle_added_archives {
 	my $db = shift;
 	my $borg_archives = shift;
