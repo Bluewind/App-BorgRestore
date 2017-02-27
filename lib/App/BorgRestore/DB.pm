@@ -102,7 +102,14 @@ sub remove_archive {
 
 	$self->{dbh}->do('alter table `files_new` rename to `files`');
 
-	my $st = $self->{dbh}->prepare('delete from `archives` where `archive_name` = ?;');
+	my $sql = 'delete from `files` where ';
+	$sql .= join(' is null and ', grep {$_ ne '`path`' } @columns_to_copy);
+	$sql .= " is null";
+
+	my $st = $self->{dbh}->prepare($sql);
+	my $rows = $st->execute();
+
+	$st = $self->{dbh}->prepare('delete from `archives` where `archive_name` = ?;');
 	$st->execute($archive);
 }
 
