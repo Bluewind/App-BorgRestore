@@ -5,11 +5,7 @@ use warnings;
 
 our $VERSION = "2.0.0";
 
-
-
-1;
-__END__
-
+=pod
 =encoding utf-8
 
 =head1 NAME
@@ -49,3 +45,23 @@ Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
 =cut
 
+sub new {
+	my $class = shift;
+	my $opts = shift;
+
+	my $self = {};
+	bless $self, $class;
+
+	$self->{opts} = $opts;
+
+	return $self;
+}
+
+sub debug {
+	my $self = shift;
+	say STDERR @_ if $self->{opts}->{debug};
+}
+
+
+1;
+__END__

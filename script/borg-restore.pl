@@ -155,6 +155,7 @@ See gpl-3.0.txt for the full license text.
 
 use v5.10;
 
+use App::BorgRestore;
 use App::BorgRestore::Borg;
 use App::BorgRestore::DB;
 use App::BorgRestore::Helper;
@@ -176,9 +177,10 @@ use Time::HiRes;
 
 my %opts;
 my %db;
+my $app;
 
 sub debug {
-	say STDERR @_ if $opts{debug};
+	$app->debug(@_);
 }
 
 sub find_archives {
@@ -540,6 +542,8 @@ sub main {
 	Getopt::Long::Configure ("bundling");
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s") or pod2usage(2);
 	pod2usage(0) if $opts{help};
+
+	$app = App::BorgRestore->new(\%opts);
 
 	if ($opts{"update-cache"}) {
 		update_cache();
