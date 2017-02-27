@@ -162,57 +162,13 @@ use App::BorgRestore::Helper;
 use App::BorgRestore::Settings;
 
 use autodie;
-use Cwd qw(abs_path getcwd);
-use Data::Dumper;
-use DateTime;
+use Cwd qw(abs_path);
 use File::Basename;
-use File::Path qw(mkpath);
-use File::Slurp;
 use File::Spec;
-use File::Temp;
 use Getopt::Long;
-use List::Util qw(any all);
 use Pod::Usage;
-use Time::HiRes;
 
-my %opts;
-my %db;
 my $app;
-
-sub debug {
-	$app->debug(@_);
-}
-
-sub find_archives {
-	my $path = shift;
-
-	my $db_path = get_cache_path('archives.db');
-
-	my $db = open_db($db_path);
-
-	my %seen_modtime;
-	my @ret;
-
-	debug("Building unique archive list");
-
-	my $archives = $db->get_archives_for_path($path);
-
-	for my $archive (@$archives) {
-		my $modtime = $archive->{modification_time};
-
-		if (defined($modtime) && (!$seen_modtime{$modtime}++)) {
-			push @ret, $archive;
-		}
-	}
-
-	if (!@ret) {
-		printf "\e[0;91mWarning:\e[0m Path '%s' not found in any archive.\n", $path;
-	}
-
-	@ret = sort { $a->{modification_time} cmp $b->{modification_time} } @ret;
-
-	return \@ret;
-}
 
 sub user_select_archive {
 	my $archives = shift;
@@ -226,7 +182,7 @@ sub user_select_archive {
 	}
 
 	for my $archive (@$archives) {
-		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, format_timestamp($archive->{modification_time}), $archive->{archive};
+		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, $app->format_timestamp($archive->{modification_time}), $archive->{archive};
 	}
 
 	printf "\e[0;34m%s: \e[0m", "Enter ID to restore (Enter to skip)";
@@ -238,302 +194,8 @@ sub user_select_archive {
 	return ${$archives}[$selection];
 }
 
-sub select_archive_timespec {
-	my $archives = shift;
-	my $timespec = shift;
-
-	my $seconds = timespec_to_seconds($timespec);
-	if (!defined($seconds)) {
-		say STDERR "Error: Invalid time specification";
-		return;
-	}
-
-	my $target_timestamp = time - $seconds;
-
-	debug("Searching for newest archive that contains a copy before ", format_timestamp($target_timestamp));
-
-	for my $archive (reverse @$archives) {
-		if ($archive->{modification_time} < $target_timestamp) {
-			return $archive;
-		}
-	}
-
-	return;
-}
-
-sub format_timestamp {
-	my $timestamp = shift;
-
-	state $timezone = DateTime::TimeZone->new( name => 'local' );
-	my $dt = DateTime->from_epoch(epoch => $timestamp, time_zone => $timezone);
-	return $dt->strftime("%a. %F %H:%M:%S %z");
-}
-
-sub timespec_to_seconds {
-	my $timespec = shift;
-
-	if ($timespec =~ m/^(?<value>[0-9.]+)(?<unit>.+)$/) {
-		my $value = $+{value};
-		my $unit = $+{unit};
-
-		my %factors = (
-			s       => 1,
-			second  => 1,
-			seconds => 1,
-			minute  => 60,
-			minutes => 60,
-			h       => 60*60,
-			hour    => 60*60,
-			hours   => 60*60,
-			d       => 60*60*24,
-			day     => 60*60*24,
-			days    => 60*60*24,
-			m       => 60*60*24*31,
-			month   => 60*60*24*31,
-			months  => 60*60*24*31,
-			y       => 60*60*24*365,
-			year    => 60*60*24*365,
-			years   => 60*60*24*365,
-		);
-
-		if (exists($factors{$unit})) {
-			return $value * $factors{$unit};
-		}
-	}
-
-	return;
-}
-
-sub restore {
-	my $path = shift;
-	my $archive = shift;
-	my $destination = shift;
-
-	$destination = App::BorgRestore::Helper::untaint($destination, qr(.*));
-	$path = App::BorgRestore::Helper::untaint($path, qr(.*));
-	my $archive_name = App::BorgRestore::Helper::untaint_archive_name($archive->{archive});
-
-	printf "Restoring %s to %s from archive %s\n", $path, $destination, $archive->{archive};
-
-	my $basename = basename($path);
-	my $components_to_strip =()= $path =~ /\//g;
-
-	debug(sprintf("CWD is %s", getcwd()));
-	debug(sprintf("Changing CWD to %s", $destination));
-	mkdir($destination) unless -d $destination;
-	chdir($destination) or die "Failed to chdir: $!";
-
-	my $final_destination = abs_path($basename);
-	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
-	debug("Removing ".$final_destination);
-	File::Path::remove_tree($final_destination);
-	App::BorgRestore::Borg::restore($components_to_strip, $archive_name, $path);
-}
-
-sub get_cache_dir {
-	return "$App::BorgRestore::Settings::cache_path_base/v2";
-}
-
-sub get_cache_path {
-	my $item = shift;
-	return get_cache_dir()."/$item";
-}
-
-sub get_temp_path {
-	my $item = shift;
-
-	state $tempdir_obj = File::Temp->newdir();
-
-	my $tempdir = $tempdir_obj->dirname;
-
-	return $tempdir."/".$item;
-}
-
-sub add_path_to_hash {
-	my $hash = shift;
-	my $path = shift;
-	my $time = shift;
-
-	my @components = split /\//, $path;
-
-	my $node = $hash;
-
-	if ($path eq ".") {
-		if ($time > $$node[1]) {
-			$$node[1] = $time;
-		}
-		return;
-	}
-
-	# each node is an arrayref of the format [$hashref_of_children, $mtime]
-	# $hashref_of_children is undef if there are no children
-	for my $component (@components) {
-		if (!defined($$node[0]->{$component})) {
-			$$node[0]->{$component} = [undef, $time];
-		}
-		# update mtime per child
-		if ($time > $$node[1]) {
-			$$node[1] = $time;
-		}
-		$node = $$node[0]->{$component};
-	}
-}
-
-sub get_missing_items {
-	my $have = shift;
-	my $want = shift;
-
-	my $ret = [];
-
-	for my $item (@$want) {
-		my $exists = any { $_ eq $item } @$have;
-		push @$ret, $item if not $exists;
-	}
-
-	return $ret;
-}
-
-sub handle_removed_archives {
-	my $db = shift;
-	my $borg_archives = shift;
-
-	my $start = Time::HiRes::gettimeofday();
-
-	my $existing_archives = $db->get_archive_names();
-
-	# TODO this name is slightly confusing, but it works as expected and
-	# returns elements that are in the previous list, but missing in the new
-	# one
-	my $remove_archives = get_missing_items($borg_archives, $existing_archives);
-
-	if (@$remove_archives) {
-		for my $archive (@$remove_archives) {
-			debug(sprintf("Removing archive %s", $archive));
-			$db->begin_work;
-			$db->remove_archive($archive);
-			$db->commit;
-			$db->vacuum;
-		}
-
-		my $end = Time::HiRes::gettimeofday();
-		debug(sprintf("Removing archives finished after: %.5fs", $end - $start));
-	}
-}
-
-sub handle_added_archives {
-	my $db = shift;
-	my $borg_archives = shift;
-
-	my $archives = $db->get_archive_names();
-	my $add_archives = get_missing_items($archives, $borg_archives);
-
-	for my $archive (@$add_archives) {
-		my $start = Time::HiRes::gettimeofday();
-		my $lookuptable = [{}, 0];
-
-		debug(sprintf("Adding archive %s", $archive));
-
-		my $proc = App::BorgRestore::Borg::list_archive($archive, \*OUT);
-		while (<OUT>) {
-			# roll our own parsing of timestamps for speed since we will be parsing
-			# a huge number of lines here
-			# example timestamp: "Wed, 2016-01-27 10:31:59"
-			if (m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
-				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
-				#debug(sprintf("Adding path %s with time %s", $+{path}, $time));
-				add_path_to_hash($lookuptable, $+{path}, $time);
-			}
-		}
-		$proc->finish() or die "borg list returned $?";
-
-		debug(sprintf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start));
-
-		$db->begin_work;
-		$db->add_archive_name($archive);
-		my $archive_id = $db->get_archive_id($archive);
-		save_node($db, $archive_id,  undef, $lookuptable);
-		$db->commit;
-		$db->vacuum;
-
-		my $end = Time::HiRes::gettimeofday();
-		debug(sprintf("Adding archive finished after: %.5fs", $end - $start));
-	}
-}
-
-sub build_archive_cache {
-	my $borg_archives = App::BorgRestore::Borg::borg_list();
-	my $db_path = get_cache_path('archives.db');
-
-	# ensure the cache directory exists
-	mkpath(get_cache_dir(), {mode => oct(700)});
-
-	if (! -f $db_path) {
-		debug("Creating initial database");
-		my $db = open_db($db_path);
-		$db->initialize_db();
-	}
-
-	my $db = open_db($db_path);
-
-	my $archives = $db->get_archive_names();
-
-	debug(sprintf("Found %d archives in db", scalar(@$archives)));
-
-	handle_removed_archives($db, $borg_archives);
-	handle_added_archives($db, $borg_archives);
-
-	if ($opts{debug}) {
-		debug(sprintf("DB contains information for %d archives in %d rows", scalar(@{$db->get_archive_names()}), $db->get_archive_row_count()));
-	}
-}
-
-sub open_db {
-	my $db_path = shift;
-
-	return App::BorgRestore::DB->new($db_path);
-}
-
-sub save_node {
-	my $db = shift;
-	my $archive_id = shift;
-	my $prefix = shift;
-	my $node = shift;
-
-	for my $child (keys %{$$node[0]}) {
-		my $path;
-		$path = $prefix."/" if defined($prefix);
-		$path .= $child;
-
-		my $time = $$node[0]->{$child}[1];
-		$db->add_path($archive_id, $path, $time);
-
-		save_node($db, $archive_id, $path, $$node[0]->{$child});
-	}
-}
-
-sub get_mtime_from_lookuptable {
-	my $lookuptable = shift;
-	my $path = shift;
-
-	my @components = split /\//, $path;
-	my $node = $lookuptable;
-
-	for my $component (@components) {
-		$node = $$node[0]->{$component};
-		if (!defined($node)) {
-			return;
-		}
-	}
-	return $$node[1];
-}
-
-sub update_cache {
-	debug("Checking if cache is complete");
-	build_archive_cache();
-	debug("Cache complete");
-}
-
 sub main {
+	my %opts;
 	# untaint PATH because we only expect this to run as root
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
@@ -546,7 +208,7 @@ sub main {
 	$app = App::BorgRestore->new(\%opts);
 
 	if ($opts{"update-cache"}) {
-		update_cache();
+		$app->update_cache();
 		return 0;
 	}
 
@@ -592,14 +254,14 @@ sub main {
 		}
 	}
 
-	debug("Asked to restore $backup_path to $destination");
+	$app->debug("Asked to restore $backup_path to $destination");
 
-	my $archives = find_archives($backup_path);
+	my $archives = $app->find_archives($backup_path);
 
 	my $selected_archive;
 
 	if (defined($timespec)) {
-		$selected_archive = select_archive_timespec($archives, $timespec);
+		$selected_archive = $app->select_archive_timespec($archives, $timespec);
 	} else {
 		$selected_archive = user_select_archive($archives);
 	}
@@ -609,7 +271,7 @@ sub main {
 		return 1;
 	}
 
-	restore($backup_path, $selected_archive, $destination);
+	$app->restore($backup_path, $selected_archive, $destination);
 
 	return 0;
 }
