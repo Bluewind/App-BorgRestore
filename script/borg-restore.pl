@@ -155,6 +155,7 @@ See gpl-3.0.txt for the full license text.
 
 use v5.10;
 
+use App::BorgRestore::Borg;
 use App::BorgRestore::DB;
 use App::BorgRestore::Helper;
 use App::BorgRestore::Settings;
@@ -169,7 +170,6 @@ use File::Slurp;
 use File::Spec;
 use File::Temp;
 use Getopt::Long;
-use IPC::Run qw(run start);
 use List::Util qw(any all);
 use Pod::Usage;
 use Time::HiRes;
@@ -179,20 +179,6 @@ my %db;
 
 sub debug {
 	say STDERR @_ if $opts{debug};
-}
-
-sub borg_list {
-	my @archives;
-
-	run [qw(borg list)], '>', \my $output or die "borg list returned $?";
-
-	for (split/^/, $output) {
-		if (m/^([^\s]+)\s/) {
-			push @archives, $1;
-		}
-	}
-
-	return \@archives;
 }
 
 sub find_archives {
@@ -339,7 +325,7 @@ sub restore {
 	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
 	debug("Removing ".$final_destination);
 	File::Path::remove_tree($final_destination);
-	system(qw(borg extract -v --strip-components), $components_to_strip, "::".$archive_name, $path);
+	App::BorgRestore::Borg::restore($components_to_strip, $archive_name, $path);
 }
 
 sub get_cache_dir {
@@ -461,7 +447,7 @@ sub handle_added_archives {
 
 		debug(sprintf("Adding archive %s", $archive));
 
-		my $proc = start [qw(borg list --list-format), '{isomtime} {path}{NEWLINE}', "::".$archive], ">pipe", \*OUT;
+		my $proc = App::BorgRestore::Borg::list_archive($archive, \*OUT);
 		while (<OUT>) {
 			# roll our own parsing of timestamps for speed since we will be parsing
 			# a huge number of lines here
@@ -489,7 +475,7 @@ sub handle_added_archives {
 }
 
 sub build_archive_cache {
-	my $borg_archives = borg_list();
+	my $borg_archives = App::BorgRestore::Borg::borg_list();
 	my $db_path = get_cache_path('archives.db');
 
 	# ensure the cache directory exists
