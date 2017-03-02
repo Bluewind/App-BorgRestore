@@ -14,7 +14,7 @@ sub untaint {
 
 sub untaint_archive_name {
 	my $archive = shift;
-	return untaint($archive, qr([a-zA-Z0-9-:+]+));
+	return untaint($archive, qr([a-zA-Z0-9-:+\.]+));
 }
 
 1;
