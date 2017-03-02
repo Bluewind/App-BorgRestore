@@ -60,11 +60,13 @@ Florian Pritz E<lt>bluewind@xinu.atE<gt>
 sub new {
 	my $class = shift;
 	my $opts = shift;
+	my $deps = shift;
 
 	my $self = {};
 	bless $self, $class;
 
 	$self->{opts} = $opts;
+	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new();
 
 	return $self;
 }
@@ -199,7 +201,7 @@ sub restore {
 	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
 	$self->debug("Removing ".$final_destination);
 	File::Path::remove_tree($final_destination);
-	App::BorgRestore::Borg::restore($components_to_strip, $archive_name, $path);
+	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
 
 sub get_cache_dir {
@@ -312,7 +314,7 @@ sub handle_added_archives {
 
 		$self->debug(sprintf("Adding archive %s", $archive));
 
-		my $proc = App::BorgRestore::Borg::list_archive($archive, \*OUT);
+		my $proc = $self->{borg}->list_archive($archive, \*OUT);
 		while (<OUT>) {
 			# roll our own parsing of timestamps for speed since we will be parsing
 			# a huge number of lines here
@@ -341,7 +343,7 @@ sub handle_added_archives {
 
 sub build_archive_cache {
 	my $self = shift;
-	my $borg_archives = App::BorgRestore::Borg::borg_list();
+	my $borg_archives = $self->{borg}->borg_list();
 	my $db_path = $self->get_cache_path('archives.db');
 
 	# ensure the cache directory exists

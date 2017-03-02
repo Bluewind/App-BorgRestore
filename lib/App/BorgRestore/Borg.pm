@@ -5,7 +5,17 @@ use strict;
 
 use IPC::Run qw(run start);
 
+sub new {
+	my $class = shift;
+
+	my $self = {};
+	bless $self, $class;
+
+	return $self;
+}
+
 sub borg_list {
+	my $self = shift;
 	my @archives;
 
 	run [qw(borg list)], '>', \my $output or die "borg list returned $?";
@@ -20,6 +30,7 @@ sub borg_list {
 }
 
 sub restore {
+	my $self = shift;
 	my $components_to_strip = shift;
 	my $archive_name = shift;
 	my $path = shift;
@@ -28,6 +39,7 @@ sub restore {
 }
 
 sub list_archive {
+	my $self = shift;
 	my $archive = shift;
 	my $fh = shift;
 
