@@ -3,7 +3,7 @@ use v5.10;
 use warnings;
 use strict;
 
-use IPC::Run qw(run start);
+use IPC::Run qw(run start new_chunker);
 
 sub new {
 	my $class = shift;
@@ -41,9 +41,9 @@ sub restore {
 sub list_archive {
 	my $self = shift;
 	my $archive = shift;
-	my $fh = shift;
+	my $cb = shift;
 
-	return start [qw(borg list --list-format), '{isomtime} {path}{NEWLINE}', "::".$archive], ">pipe", $fh;
+	return start [qw(borg list --list-format), '{isomtime} {path}{NEWLINE}', "::".$archive], ">", new_chunker, $cb;
 }
 
 1;

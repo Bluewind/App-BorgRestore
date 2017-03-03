@@ -314,17 +314,17 @@ sub handle_added_archives {
 
 		$self->debug(sprintf("Adding archive %s", $archive));
 
-		my $proc = $self->{borg}->list_archive($archive, \*OUT);
-		while (<OUT>) {
+		my $proc = $self->{borg}->list_archive($archive, sub {
+			my $line = shift;
 			# roll our own parsing of timestamps for speed since we will be parsing
 			# a huge number of lines here
 			# example timestamp: "Wed, 2016-01-27 10:31:59"
-			if (m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
+			if ($line =~ m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
 				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
 				#$self->debug(sprintf("Adding path %s with time %s", $+{path}, $time));
 				$self->add_path_to_hash($lookuptable, $+{path}, $time);
 			}
-		}
+		});
 		$proc->finish() or die "borg list returned $?";
 
 		$self->debug(sprintf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start));
