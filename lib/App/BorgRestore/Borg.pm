@@ -43,7 +43,14 @@ sub list_archive {
 	my $archive = shift;
 	my $cb = shift;
 
-	return start [qw(borg list --list-format), '{isomtime} {path}{NEWLINE}', "::".$archive], ">", new_chunker, $cb;
+	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', "::".$archive);
+	while (<$fh>) {
+		$cb->($_);
+	}
+
+	# this is slow
+	#return start [qw(borg list --list-format), '{isomtime} {path}{NEWLINE}', "::".$archive], ">", new_chunker, $cb;
+	#$proc->finish() or die "borg list returned $?";
 }
 
 1;

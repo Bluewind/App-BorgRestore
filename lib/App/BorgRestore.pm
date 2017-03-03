@@ -314,7 +314,7 @@ sub handle_added_archives {
 
 		$self->debug(sprintf("Adding archive %s", $archive));
 
-		my $proc = $self->{borg}->list_archive($archive, sub {
+		$self->{borg}->list_archive($archive, sub {
 			my $line = shift;
 			# roll our own parsing of timestamps for speed since we will be parsing
 			# a huge number of lines here
@@ -325,7 +325,6 @@ sub handle_added_archives {
 				$self->add_path_to_hash($lookuptable, $+{path}, $time);
 			}
 		});
-		$proc->finish() or die "borg list returned $?";
 
 		$self->debug(sprintf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start));
 
