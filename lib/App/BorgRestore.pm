@@ -391,7 +391,7 @@ sub save_node {
 		my $time = $$node[0]->{$child}[1];
 		$db->add_path($archive_id, $path, $time);
 
-		save_node($db, $archive_id, $path, $$node[0]->{$child});
+		$self->save_node($db, $archive_id, $path, $$node[0]->{$child});
 	}
 }
 
