@@ -67,6 +67,22 @@ sub new {
 
 	$self->{opts} = $opts;
 	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new();
+	$self->{db} = $deps->{db} // App::BorgRestore::DB->new();
+
+	return $self;
+}
+
+sub new_no_defaults {
+	my $class = shift;
+	my $opts = shift;
+	my $deps = shift;
+
+	my $self = {};
+	bless $self, $class;
+
+	$self->{opts} = $opts;
+	$self->{borg} = $deps->{borg};
+	$self->{db} = $deps->{db};
 
 	return $self;
 }
