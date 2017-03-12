@@ -115,7 +115,7 @@ sub find_archives {
 		printf "\e[0;91mWarning:\e[0m Path '%s' not found in any archive.\n", $path;
 	}
 
-	@ret = sort { $a->{modification_time} cmp $b->{modification_time} } @ret;
+	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
 
 	return \@ret;
 }
