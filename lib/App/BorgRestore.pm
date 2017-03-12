@@ -7,7 +7,6 @@ our $VERSION = "2.0.0";
 
 use autodie;
 use Cwd qw(abs_path getcwd);
-use DateTime;
 use File::Basename;
 use File::Path qw(mkpath);
 use File::Slurp;
@@ -16,6 +15,7 @@ use File::Temp;
 use Getopt::Long;
 use List::Util qw(any all);
 use Pod::Usage;
+use POSIX ();
 use Time::HiRes;
 
 =encoding utf-8
@@ -148,9 +148,7 @@ sub format_timestamp {
 	my $self = shift;
 	my $timestamp = shift;
 
-	state $timezone = DateTime::TimeZone->new( name => 'local' );
-	my $dt = DateTime->from_epoch(epoch => $timestamp, time_zone => $timezone);
-	return $dt->strftime("%a. %F %H:%M:%S %z");
+	return POSIX::strftime "%a. %F %H:%M:%S %z", localtime $timestamp;
 }
 
 sub timespec_to_seconds {
