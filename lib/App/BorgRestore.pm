@@ -96,16 +96,12 @@ sub find_archives {
 	my $self = shift;
 	my $path = shift;
 
-	my $db_path = $self->get_cache_path('archives.db');
-
-	my $db = $self->open_db($db_path);
-
 	my %seen_modtime;
 	my @ret;
 
 	$self->debug("Building unique archive list");
 
-	my $archives = $db->get_archives_for_path($path);
+	my $archives = $self->{db}->get_archives_for_path($path);
 
 	for my $archive (@$archives) {
 		my $modtime = $archive->{modification_time};
@@ -290,12 +286,11 @@ sub get_missing_items {
 
 sub handle_removed_archives {
 	my $self = shift;
-	my $db = shift;
 	my $borg_archives = shift;
 
 	my $start = Time::HiRes::gettimeofday();
 
-	my $existing_archives = $db->get_archive_names();
+	my $existing_archives = $self->{db}->get_archive_names();
 
 	# TODO this name is slightly confusing, but it works as expected and
 	# returns elements that are in the previous list, but missing in the new
@@ -305,10 +300,10 @@ sub handle_removed_archives {
 	if (@$remove_archives) {
 		for my $archive (@$remove_archives) {
 			$self->debug(sprintf("Removing archive %s", $archive));
-			$db->begin_work;
-			$db->remove_archive($archive);
-			$db->commit;
-			$db->vacuum;
+			$self->{db}->begin_work;
+			$self->{db}->remove_archive($archive);
+			$self->{db}->commit;
+			$self->{db}->vacuum;
 		}
 
 		my $end = Time::HiRes::gettimeofday();
@@ -318,10 +313,9 @@ sub handle_removed_archives {
 
 sub handle_added_archives {
 	my $self = shift;
-	my $db = shift;
 	my $borg_archives = shift;
 
-	my $archives = $db->get_archive_names();
+	my $archives = $self->{db}->get_archive_names();
 	my $add_archives = $self->get_missing_items($archives, $borg_archives);
 
 	for my $archive (@$add_archives) {
@@ -344,12 +338,12 @@ sub handle_added_archives {
 
 		$self->debug(sprintf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start));
 
-		$db->begin_work;
-		$db->add_archive_name($archive);
-		my $archive_id = $db->get_archive_id($archive);
-		$self->save_node($db, $archive_id,  undef, $lookuptable);
-		$db->commit;
-		$db->vacuum;
+		$self->{db}->begin_work;
+		$self->{db}->add_archive_name($archive);
+		my $archive_id = $self->{db}->get_archive_id($archive);
+		$self->save_node($archive_id,  undef, $lookuptable);
+		$self->{db}->commit;
+		$self->{db}->vacuum;
 
 		my $end = Time::HiRes::gettimeofday();
 		$self->debug(sprintf("Adding archive finished after: %.5fs", $end - $start));
@@ -367,33 +361,23 @@ sub build_archive_cache {
 	if (! -f $db_path) {
 		$self->debug("Creating initial database");
 		my $db = $self->open_db($db_path);
-		$db->initialize_db();
+		$self->{db}->initialize_db();
 	}
 
-	my $db = $self->open_db($db_path);
-
-	my $archives = $db->get_archive_names();
+	my $archives = $self->{db}->get_archive_names();
 
 	$self->debug(sprintf("Found %d archives in db", scalar(@$archives)));
 
-	$self->handle_removed_archives($db, $borg_archives);
-	$self->handle_added_archives($db, $borg_archives);
+	$self->handle_removed_archives($self->{db}, $borg_archives);
+	$self->handle_added_archives($self->{db}, $borg_archives);
 
 	if ($self->{opts}->{debug}) {
-		$self->debug(sprintf("DB contains information for %d archives in %d rows", scalar(@{$db->get_archive_names()}), $db->get_archive_row_count()));
+		$self->debug(sprintf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count()));
 	}
-}
-
-sub open_db {
-	my $self = shift;
-	my $db_path = shift;
-
-	return App::BorgRestore::DB->new($db_path);
 }
 
 sub save_node {
 	my $self = shift;
-	my $db = shift;
 	my $archive_id = shift;
 	my $prefix = shift;
 	my $node = shift;
@@ -404,9 +388,9 @@ sub save_node {
 		$path .= $child;
 
 		my $time = $$node[0]->{$child}[1];
-		$db->add_path($archive_id, $path, $time);
+		$self->{db}->add_path($archive_id, $path, $time);
 
-		$self->save_node($db, $archive_id, $path, $$node[0]->{$child});
+		$self->save_node($archive_id, $path, $$node[0]->{$child});
 	}
 }
 
