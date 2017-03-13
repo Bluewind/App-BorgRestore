@@ -166,6 +166,8 @@ use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec;
 use Getopt::Long;
+use Log::Any;
+use Log::Any::Adapter;
 use Pod::Usage;
 
 my $app;
@@ -195,6 +197,8 @@ sub user_select_archive {
 }
 
 sub main {
+	Log::Any::Adapter->set('Stderr', log_level => "warn");
+
 	my %opts;
 	# untaint PATH because we only expect this to run as root
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
@@ -204,6 +208,10 @@ sub main {
 	Getopt::Long::Configure ("bundling");
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s") or pod2usage(2);
 	pod2usage(0) if $opts{help};
+
+	if ($opts{debug}) {
+		Log::Any::Adapter->set('Stderr', log_level => "debug");
+	}
 
 	$app = App::BorgRestore->new(\%opts);
 
@@ -254,7 +262,7 @@ sub main {
 		}
 	}
 
-	$app->debug("Asked to restore $backup_path to $destination");
+	$log->debug("Asked to restore $backup_path to $destination");
 
 	my $archives = $app->find_archives($backup_path);
 
