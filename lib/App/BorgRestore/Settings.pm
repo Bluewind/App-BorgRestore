@@ -5,6 +5,8 @@ use warnings;
 
 use App::BorgRestore::Helper;
 
+use File::Path qw(mkpath);
+
 our $borg_repo = "";
 our $cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME}."/.cache");
 our @backup_prefixes = (
@@ -27,6 +29,19 @@ for my $configfile (@configfiles) {
 	}
 }
 $cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
+
+# ensure the cache directory exists
+mkpath(get_cache_dir(), {mode => oct(700)});
+
+sub get_cache_dir {
+	return "$cache_path_base/v2";
+}
+
+sub get_cache_path {
+	my $item = shift;
+	return get_cache_dir()."/$item";
+}
+
 
 1;
 

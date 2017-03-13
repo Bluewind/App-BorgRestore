@@ -5,10 +5,14 @@ use warnings;
 
 our $VERSION = "2.0.0";
 
+use App::BorgRestore::Borg;
+use App::BorgRestore::DB;
+use App::BorgRestore::Helper;
+use App::BorgRestore::Settings;
+
 use autodie;
 use Cwd qw(abs_path getcwd);
 use File::Basename;
-use File::Path qw(mkpath);
 use File::Slurp;
 use File::Spec;
 use File::Temp;
@@ -65,9 +69,12 @@ sub new {
 	my $self = {};
 	bless $self, $class;
 
+	my $db_path = App::BorgRestore::Settings::get_cache_path('archives.db');
+	# TODO: make db_path configurable, probably settings too
+
 	$self->{opts} = $opts;
 	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new();
-	$self->{db} = $deps->{db} // App::BorgRestore::DB->new();
+	$self->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path);
 
 	return $self;
 }
@@ -214,17 +221,6 @@ sub restore {
 	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
 
-sub get_cache_dir {
-	my $self = shift;
-	return "$App::BorgRestore::Settings::cache_path_base/v2";
-}
-
-sub get_cache_path {
-	my $self = shift;
-	my $item = shift;
-	return $self->get_cache_dir()."/$item";
-}
-
 sub get_temp_path {
 	my $self = shift;
 	my $item = shift;
@@ -352,15 +348,6 @@ sub build_archive_cache {
 	my $self = shift;
 	my $borg_archives = $self->{borg}->borg_list();
 	my $db_path = $self->get_cache_path('archives.db');
-
-	# ensure the cache directory exists
-	mkpath($self->get_cache_dir(), {mode => oct(700)});
-
-	if (! -f $db_path) {
-		$self->debug("Creating initial database");
-		my $db = $self->open_db($db_path);
-		$self->{db}->initialize_db();
-	}
 
 	my $archives = $self->{db}->get_archive_names();
 
