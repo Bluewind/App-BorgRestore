@@ -155,7 +155,7 @@ sub timespec_to_seconds {
 	my $self = shift;
 	my $timespec = shift;
 
-	if ($timespec =~ m/^(?<value>[0-9.]+)(?<unit>.+)$/) {
+	if ($timespec =~ m/^(?>(?<value>[0-9.]+))(?>(?<unit>[a-z]+))$/) {
 		my $value = $+{value};
 		my $unit = $+{unit};
 
