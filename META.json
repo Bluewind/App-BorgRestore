@@ -42,6 +42,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Log::Any" : "0",
             "perl" : "v5.10.0"
          }
       },
