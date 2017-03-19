@@ -18,6 +18,7 @@ use File::Spec;
 use File::Temp;
 use Getopt::Long;
 use List::Util qw(any all);
+use Log::Any qw($log);
 use Pod::Usage;
 use POSIX ();
 use Time::HiRes;
@@ -94,11 +95,6 @@ sub new_no_defaults {
 	return $self;
 }
 
-sub debug {
-	my $self = shift;
-	say STDERR @_ if $self->{opts}->{debug};
-}
-
 sub find_archives {
 	my $self = shift;
 	my $path = shift;
@@ -106,7 +102,7 @@ sub find_archives {
 	my %seen_modtime;
 	my @ret;
 
-	$self->debug("Building unique archive list");
+	$log->debug("Building unique archive list");
 
 	my $archives = $self->{db}->get_archives_for_path($path);
 
@@ -140,7 +136,7 @@ sub select_archive_timespec {
 
 	my $target_timestamp = time - $seconds;
 
-	$self->debug("Searching for newest archive that contains a copy before ", $self->format_timestamp($target_timestamp));
+	$log->debugf("Searching for newest archive that contains a copy before %s", $self->format_timestamp($target_timestamp));
 
 	for my $archive (reverse @$archives) {
 		if ($archive->{modification_time} < $target_timestamp) {
@@ -209,14 +205,14 @@ sub restore {
 	my $basename = basename($path);
 	my $components_to_strip =()= $path =~ /\//g;
 
-	$self->debug(sprintf("CWD is %s", getcwd()));
-	$self->debug(sprintf("Changing CWD to %s", $destination));
+	$log->debugf("CWD is %s", getcwd());
+	$log->debugf("Changing CWD to %s", $destination);
 	mkdir($destination) unless -d $destination;
 	chdir($destination) or die "Failed to chdir: $!";
 
 	my $final_destination = abs_path($basename);
 	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
-	$self->debug("Removing ".$final_destination);
+	$log->debugf("Removing %s", $final_destination);
 	File::Path::remove_tree($final_destination);
 	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
@@ -293,7 +289,7 @@ sub handle_removed_archives {
 
 	if (@$remove_archives) {
 		for my $archive (@$remove_archives) {
-			$self->debug(sprintf("Removing archive %s", $archive));
+			$log->debugf("Removing archive %s", $archive);
 			$self->{db}->begin_work;
 			$self->{db}->remove_archive($archive);
 			$self->{db}->commit;
@@ -301,7 +297,7 @@ sub handle_removed_archives {
 		}
 
 		my $end = Time::HiRes::gettimeofday();
-		$self->debug(sprintf("Removing archives finished after: %.5fs", $end - $start));
+		$log->debugf("Removing archives finished after: %.5fs", $end - $start);
 	}
 }
 
@@ -316,7 +312,7 @@ sub handle_added_archives {
 		my $start = Time::HiRes::gettimeofday();
 		my $lookuptable = [{}, 0];
 
-		$self->debug(sprintf("Adding archive %s", $archive));
+		$log->debugf("Adding archive %s", $archive);
 
 		$self->{borg}->list_archive($archive, sub {
 			my $line = shift;
@@ -325,12 +321,12 @@ sub handle_added_archives {
 			# example timestamp: "Wed, 2016-01-27 10:31:59"
 			if ($line =~ m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
 				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
-				#$self->debug(sprintf("Adding path %s with time %s", $+{path}, $time));
+				#$log->debugf("Adding path %s with time %s", $+{path}, $time);
 				$self->add_path_to_hash($lookuptable, $+{path}, $time);
 			}
 		});
 
-		$self->debug(sprintf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start));
+		$log->debugf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start);
 
 		$self->{db}->begin_work;
 		$self->{db}->add_archive_name($archive);
@@ -340,7 +336,7 @@ sub handle_added_archives {
 		$self->{db}->vacuum;
 
 		my $end = Time::HiRes::gettimeofday();
-		$self->debug(sprintf("Adding archive finished after: %.5fs", $end - $start));
+		$log->debugf("Adding archive finished after: %.5fs", $end - $start);
 	}
 }
 
@@ -351,13 +347,13 @@ sub build_archive_cache {
 
 	my $archives = $self->{db}->get_archive_names();
 
-	$self->debug(sprintf("Found %d archives in db", scalar(@$archives)));
+	$log->debugf("Found %d archives in db", scalar(@$archives));
 
 	$self->handle_removed_archives($self->{db}, $borg_archives);
 	$self->handle_added_archives($self->{db}, $borg_archives);
 
 	if ($self->{opts}->{debug}) {
-		$self->debug(sprintf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count()));
+		$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
 	}
 }
 
@@ -398,9 +394,9 @@ sub get_mtime_from_lookuptable {
 
 sub update_cache {
 	my $self = shift;
-	$self->debug("Checking if cache is complete");
+	$log->debug("Checking if cache is complete");
 	$self->build_archive_cache();
-	$self->debug("Cache complete");
+	$log->debug("Cache complete");
 }
 
 
