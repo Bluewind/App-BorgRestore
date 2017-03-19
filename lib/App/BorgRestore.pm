@@ -343,14 +343,14 @@ sub handle_added_archives {
 sub build_archive_cache {
 	my $self = shift;
 	my $borg_archives = $self->{borg}->borg_list();
-	my $db_path = $self->get_cache_path('archives.db');
+	my $db_path = App::BorgRestore::Settings::get_cache_path('archives.db');
 
 	my $archives = $self->{db}->get_archive_names();
 
 	$log->debugf("Found %d archives in db", scalar(@$archives));
 
-	$self->handle_removed_archives($self->{db}, $borg_archives);
-	$self->handle_added_archives($self->{db}, $borg_archives);
+	$self->handle_removed_archives($borg_archives);
+	$self->handle_added_archives($borg_archives);
 
 	if ($self->{opts}->{debug}) {
 		$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
