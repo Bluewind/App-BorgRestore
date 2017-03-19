@@ -166,7 +166,7 @@ use Cwd qw(abs_path);
 use File::Basename;
 use File::Spec;
 use Getopt::Long;
-use Log::Any;
+use Log::Any qw($log);
 use Log::Any::Adapter;
 use Pod::Usage;
 
