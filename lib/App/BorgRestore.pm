@@ -213,17 +213,6 @@ sub restore {
 	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
 
-sub get_temp_path {
-	my $self = shift;
-	my $item = shift;
-
-	state $tempdir_obj = File::Temp->newdir();
-
-	my $tempdir = $tempdir_obj->dirname;
-
-	return $tempdir."/".$item;
-}
-
 sub add_path_to_hash {
 	my $self = shift;
 	my $hash = shift;
