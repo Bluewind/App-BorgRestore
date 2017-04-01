@@ -64,7 +64,6 @@ Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
 sub new {
 	my $class = shift;
-	my $opts = shift;
 	my $deps = shift;
 
 	my $self = {};
@@ -73,7 +72,6 @@ sub new {
 	my $db_path = App::BorgRestore::Settings::get_cache_path('archives.db');
 	# TODO: make db_path configurable, probably settings too
 
-	$self->{opts} = $opts;
 	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new();
 	$self->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path);
 
@@ -82,13 +80,11 @@ sub new {
 
 sub new_no_defaults {
 	my $class = shift;
-	my $opts = shift;
 	my $deps = shift;
 
 	my $self = {};
 	bless $self, $class;
 
-	$self->{opts} = $opts;
 	$self->{borg} = $deps->{borg};
 	$self->{db} = $deps->{db};
 
@@ -352,9 +348,7 @@ sub build_archive_cache {
 	$self->handle_removed_archives($borg_archives);
 	$self->handle_added_archives($borg_archives);
 
-	if ($self->{opts}->{debug}) {
-		$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
-	}
+	$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
 }
 
 sub save_node {

@@ -17,7 +17,7 @@ $db->mock('get_archives_for_path', sub {return [
 			{ modification_time => 15, archive => "test5"},
 		];});
 
-my $app = App::BorgRestore->new_no_defaults({}, {db => $db});
+my $app = App::BorgRestore->new_no_defaults({db => $db});
 
 eq_or_diff($app->find_archives('test/path'), [
   {archive => 'test1', modification_time => 2},

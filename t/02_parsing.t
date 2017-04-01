@@ -27,7 +27,7 @@ $borg->mock('list_archive', sub {
 	} );
 
 # Call the actual function we want to test
-my $app = App::BorgRestore->new({}, {borg => $borg, db => $db});
+my $app = App::BorgRestore->new({borg => $borg, db => $db});
 $app->handle_added_archives(['archive-1'], $db);
 
 # Check if $db->add_path has been called properly

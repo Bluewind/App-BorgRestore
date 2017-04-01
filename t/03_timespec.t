@@ -5,7 +5,7 @@ use Test::More;
 
 use App::BorgRestore;
 
-my $app = App::BorgRestore->new_no_defaults({}, undef);
+my $app = App::BorgRestore->new_no_defaults(undef);
 
 is($app->timespec_to_seconds('5s'), 5, '5 seconds');
 is($app->timespec_to_seconds('5minutes'), 5*60, '5 minutes');
