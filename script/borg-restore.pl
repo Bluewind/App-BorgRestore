@@ -177,12 +177,11 @@ sub user_select_archive {
 
 	my $selected_archive;
 
-	my $counter = 0;
-
 	if (!@$archives) {
 		return;
 	}
 
+	my $counter = 0;
 	for my $archive (@$archives) {
 		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, $app->format_timestamp($archive->{modification_time}), $archive->{archive};
 	}
