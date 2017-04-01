@@ -124,7 +124,7 @@ sub select_archive_timespec {
 	my $archives = shift;
 	my $timespec = shift;
 
-	my $seconds = $self->timespec_to_seconds($timespec);
+	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
 		say STDERR "Error: Invalid time specification";
 		return;
@@ -150,7 +150,7 @@ sub format_timestamp {
 	return POSIX::strftime "%a. %F %H:%M:%S %z", localtime $timestamp;
 }
 
-sub timespec_to_seconds {
+sub _timespec_to_seconds {
 	my $self = shift;
 	my $timespec = shift;
 
@@ -213,7 +213,7 @@ sub restore {
 	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
 
-sub add_path_to_hash {
+sub _add_path_to_hash {
 	my $self = shift;
 	my $hash = shift;
 	my $path = shift;
@@ -259,7 +259,7 @@ sub get_missing_items {
 	return $ret;
 }
 
-sub handle_removed_archives {
+sub _handle_removed_archives {
 	my $self = shift;
 	my $borg_archives = shift;
 
@@ -286,7 +286,7 @@ sub handle_removed_archives {
 	}
 }
 
-sub handle_added_archives {
+sub _handle_added_archives {
 	my $self = shift;
 	my $borg_archives = shift;
 
@@ -307,7 +307,7 @@ sub handle_added_archives {
 			if ($line =~ m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
 				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
 				#$log->debugf("Adding path %s with time %s", $+{path}, $time);
-				$self->add_path_to_hash($lookuptable, $+{path}, $time);
+				$self->_add_path_to_hash($lookuptable, $+{path}, $time);
 			}
 		});
 
@@ -316,7 +316,7 @@ sub handle_added_archives {
 		$self->{db}->begin_work;
 		$self->{db}->add_archive_name($archive);
 		my $archive_id = $self->{db}->get_archive_id($archive);
-		$self->save_node($archive_id,  undef, $lookuptable);
+		$self->_save_node($archive_id,  undef, $lookuptable);
 		$self->{db}->commit;
 		$self->{db}->vacuum;
 
@@ -334,13 +334,13 @@ sub build_archive_cache {
 
 	$log->debugf("Found %d archives in db", scalar(@$archives));
 
-	$self->handle_removed_archives($borg_archives);
-	$self->handle_added_archives($borg_archives);
+	$self->_handle_removed_archives($borg_archives);
+	$self->_handle_added_archives($borg_archives);
 
 	$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
 }
 
-sub save_node {
+sub _save_node {
 	my $self = shift;
 	my $archive_id = shift;
 	my $prefix = shift;
@@ -354,7 +354,7 @@ sub save_node {
 		my $time = $$node[0]->{$child}[1];
 		$self->{db}->add_path($archive_id, $path, $time);
 
-		$self->save_node($archive_id, $path, $$node[0]->{$child});
+		$self->_save_node($archive_id, $path, $$node[0]->{$child});
 	}
 }
 
