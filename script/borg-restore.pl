@@ -213,7 +213,7 @@ sub main {
 		Log::Any::Adapter->set('Stderr', log_level => "debug");
 	}
 
-	$app = App::BorgRestore->new(\%opts);
+	$app = App::BorgRestore->new();
 
 	if ($opts{"update-cache"}) {
 		$app->update_cache();
