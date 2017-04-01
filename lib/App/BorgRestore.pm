@@ -369,23 +369,6 @@ sub save_node {
 	}
 }
 
-sub get_mtime_from_lookuptable {
-	my $self = shift;
-	my $lookuptable = shift;
-	my $path = shift;
-
-	my @components = split /\//, $path;
-	my $node = $lookuptable;
-
-	for my $component (@components) {
-		$node = $$node[0]->{$component};
-		if (!defined($node)) {
-			return;
-		}
-	}
-	return $$node[1];
-}
-
 sub update_cache {
 	my $self = shift;
 	$log->debug("Checking if cache is complete");
