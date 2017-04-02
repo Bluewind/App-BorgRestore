@@ -144,7 +144,7 @@ sub find_archives {
 	my %seen_modtime;
 	my @ret;
 
-	$log->debug("Building unique archive list");
+	$log->debugf("Searching for archives containing '%s'", $path);
 
 	my $archives = $self->{db}->get_archives_for_path($path);
 
