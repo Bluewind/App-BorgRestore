@@ -214,6 +214,20 @@ sub main {
 	Log::Log4perl::init( \$conf );
 	Log::Any::Adapter->set('Log4perl');
 
+	$SIG{__WARN__} = sub {
+		local $Log::Log4perl::caller_depth =
+			$Log::Log4perl::caller_depth + 1;
+		 Log::Log4perl->get_logger()->warn(@_);
+	};
+
+	$SIG{__DIE__} = sub {
+		# ignore eval blocks
+		return if($^S);
+		local $Log::Log4perl::caller_depth =
+			$Log::Log4perl::caller_depth + 1;
+		 Log::Log4perl->get_logger()->logdie(@_);
+	};
+
 	my %opts;
 	# untaint PATH because we only expect this to run as root
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
