@@ -87,6 +87,7 @@ the disk too much.
 
 Copyright (C) 2016-2017  Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
+Licensed under the GNU General Public License version 3 or later.
 See LICENSE for the full license text.
 
 =cut
