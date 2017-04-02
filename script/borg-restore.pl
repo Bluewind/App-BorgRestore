@@ -283,6 +283,11 @@ sub main {
 
 	my $archives = $app->find_archives($backup_path);
 
+	if (!@$archives) {
+		$log->fatal("No archives found for path");
+		return 1;
+	}
+
 	my $selected_archive;
 
 	if (defined($timespec)) {
