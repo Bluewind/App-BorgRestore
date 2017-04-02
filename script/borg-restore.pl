@@ -260,7 +260,6 @@ sub main {
 	}
 
 	my $abs_path = $app->resolve_relative_path($path);
-	return 1 unless defined $abs_path;
 
 	$destination = dirname($abs_path) unless defined($destination);
 	my $backup_path = $app->map_path_to_backup_path($abs_path);

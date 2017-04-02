@@ -11,6 +11,7 @@ use App::BorgRestore::Helper;
 use App::BorgRestore::Settings;
 
 use autodie;
+use Carp;
 use Cwd qw(abs_path getcwd);
 use File::Basename;
 use File::Slurp;
@@ -114,7 +115,7 @@ sub resolve_relative_path {
 	if (!defined($abs_path)) {
 		$log->fatalf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
 		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
-		return;
+		croak "Path resolving failed";
 	}
 
 	return $abs_path;
