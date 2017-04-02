@@ -188,7 +188,7 @@ sub select_archive_timespec {
 		}
 	}
 
-	return;
+	die "Failed to find archive matching time specification\n";
 }
 
 sub format_timestamp {
