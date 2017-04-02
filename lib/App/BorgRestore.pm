@@ -183,6 +183,7 @@ sub select_archive_timespec {
 
 	for my $archive (reverse @$archives) {
 		if ($archive->{modification_time} < $target_timestamp) {
+			$log->debugf("Found archive with timestamp %s", $self->format_timestamp($archive->{modification_time}));
 			return $archive;
 		}
 	}
