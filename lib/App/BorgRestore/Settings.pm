@@ -6,8 +6,9 @@ use warnings;
 use App::BorgRestore::Helper;
 
 use File::Path qw(mkpath);
+use Sys::Hostname;
 
-our $borg_repo = "";
+our $borg_repo = "backup:borg-".hostname;
 our $cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME}."/.cache");
 our @backup_prefixes = (
 	{regex => "^/", replacement => ""},
