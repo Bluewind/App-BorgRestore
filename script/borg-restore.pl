@@ -164,7 +164,6 @@ use App::BorgRestore::Settings;
 use autodie;
 use Cwd qw(abs_path);
 use File::Basename;
-use File::Spec;
 use Getopt::Long;
 use Log::Any qw($log);
 use Log::Any::Adapter;
@@ -260,13 +259,8 @@ sub main {
 		exit(1);
 	}
 
-	my $canon_path = File::Spec->canonpath($path);
-	my $abs_path = abs_path($canon_path);
-	if (!defined($abs_path)) {
-		$log->fatalf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
-		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
-		exit(1);
-	}
+	my $abs_path = $app->resolve_relative_path($path);
+	return 1 unless defined $abs_path;
 
 	if (!defined($destination)) {
 		$destination = dirname($abs_path);

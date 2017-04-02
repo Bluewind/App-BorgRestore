@@ -104,6 +104,22 @@ sub new_no_defaults {
 	return $self;
 }
 
+sub resolve_relative_path {
+	my $self = shift;
+	my $path = shift;
+
+	my $canon_path = File::Spec->canonpath($path);
+	my $abs_path = abs_path($canon_path);
+
+	if (!defined($abs_path)) {
+		$log->fatalf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
+		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
+		return;
+	}
+
+	return $abs_path;
+}
+
 sub find_archives {
 	my $self = shift;
 	my $path = shift;
