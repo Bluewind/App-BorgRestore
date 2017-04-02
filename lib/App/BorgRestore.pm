@@ -173,8 +173,8 @@ sub select_archive_timespec {
 
 	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
-		$log->error("Invalid time specification");
-		return;
+		$log->errorf("Invalid time specification: %s", $timespec);
+		croak "Invalid time specification";
 	}
 
 	my $target_timestamp = time - $seconds;
