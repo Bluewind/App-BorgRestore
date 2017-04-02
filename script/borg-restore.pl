@@ -168,7 +168,9 @@ use Getopt::Long;
 use Log::Any qw($log);
 use Log::Any::Adapter;
 use Log::Log4perl;
-use Log::Log4perl::Layout;
+use Log::Log4perl::Appender::Screen;
+use Log::Log4perl::Appender::ScreenColoredLevels;
+use Log::Log4perl::Layout::PatternLayout;
 use Log::Log4perl::Level;
 use Pod::Usage;
 
