@@ -8,7 +8,20 @@ App::BorgRestore - Restore paths from borg backups
 
 # DESCRIPTION
 
-App::BorgRestore is ...
+App::BorgRestore is a restoration helper for borg.
+
+It maintains a cache of borg backup contents (path and latest modification
+time) and allows to quickly look up backups that contain a path. It further
+supports restoring a path from an archive. The archive to be used can also be
+automatically determined based on the age of the path.
+
+The cache has to be updated regularly, ideally after creating or removing
+backups.
+
+**borg-restore.pl** is a wrapper around this class that allows for simple CLI
+usage.
+
+This package uses [Log::Any](https://metacpan.org/pod/Log::Any) for logging.
 
 # LICENSE
 
