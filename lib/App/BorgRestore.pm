@@ -158,6 +158,7 @@ sub find_archives {
 
 	if (!@ret) {
 		$log->warningf("Path '%s' not found in any archive.\n", $path);
+		croak "Failed to find archives for path";
 	}
 
 	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
