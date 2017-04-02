@@ -250,6 +250,7 @@ sub restore {
 	$log->debugf("Changing CWD to %s", $destination);
 	mkdir($destination) unless -d $destination;
 	chdir($destination) or die "Failed to chdir: $!";
+	# TODO chdir back to original after restore
 
 	my $final_destination = abs_path($basename);
 	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
