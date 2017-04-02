@@ -210,6 +210,8 @@ sub main {
 	log4perl.appender.screenlog.stderr   = 1
 	log4perl.appender.screenlog.layout   = Log::Log4perl::Layout::PatternLayout
 	log4perl.appender.screenlog.layout.ConversionPattern = %p %m%n
+
+	log4perl.PatternLayout.cspec.U = sub {my \@c = caller(\$_[4]); \$c[0] =~ s/::/./g; return sprintf('%s:%s', \$c[0], \$c[2]);}
 	";
 	Log::Log4perl::init( \$conf );
 	Log::Any::Adapter->set('Log4perl');
@@ -242,7 +244,7 @@ sub main {
 		my $logger = Log::Log4perl->get_logger('');
 		$logger->level($DEBUG);
 		Log::Log4perl->appenders()->{"screenlog"}->layout(
-			Log::Log4perl::Layout::PatternLayout->new("%d %8r [%30c:%-4L] %p %m%n"));
+			Log::Log4perl::Layout::PatternLayout->new("%d %8r [%-30U] %p %m%n"));
 	}
 
 	$app = App::BorgRestore->new();
