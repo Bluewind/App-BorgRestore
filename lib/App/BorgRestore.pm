@@ -120,6 +120,22 @@ sub resolve_relative_path {
 	return $abs_path;
 }
 
+sub map_path_to_backup_path {
+	my $self = shift;
+	my $abs_path = shift;
+
+	my $backup_path = $abs_path;
+
+	for my $backup_prefix (@App::BorgRestore::Settings::backup_prefixes) {
+		if ($backup_path =~ m/$backup_prefix->{regex}/) {
+			$backup_path =~ s/$backup_prefix->{regex}/$backup_prefix->{replacement}/;
+			last;
+		}
+	}
+
+	return $backup_path;
+}
+
 sub find_archives {
 	my $self = shift;
 	my $path = shift;
