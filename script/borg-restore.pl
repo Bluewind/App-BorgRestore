@@ -274,8 +274,7 @@ sub main {
 	}
 
 	if (@ARGV > 1) {
-		$log->fatal("Too many arguments");
-		exit(1);
+		die "Too many arguments";
 	}
 
 	my $abs_path = $app->resolve_relative_path($path);
@@ -295,8 +294,7 @@ sub main {
 	}
 
 	if (!defined($selected_archive)) {
-		$log->fatal("No archive selected or selection invalid");
-		return 1;
+		die "No archive selected or selection invalid";
 	}
 
 	$app->restore($backup_path, $selected_archive, $destination);
