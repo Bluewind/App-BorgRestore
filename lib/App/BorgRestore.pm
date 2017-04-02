@@ -324,7 +324,7 @@ sub _handle_added_archives {
 			}
 		});
 
-		$log->debugf("Finished parsing borg output after %.5fs. Adding to db", Time::HiRes::gettimeofday - $start);
+		my $borg_time = Time::HiRes::gettimeofday;
 
 		$self->{db}->begin_work;
 		$self->{db}->add_archive_name($archive);
@@ -334,7 +334,7 @@ sub _handle_added_archives {
 		$self->{db}->vacuum;
 
 		my $end = Time::HiRes::gettimeofday();
-		$log->debugf("Adding archive finished after: %.5fs", $end - $start);
+		$log->debugf("Adding archive finished after: %.5fs (parsing borg output took %.5fs)", $end - $start, $borg_time - $start);
 	}
 }
 
