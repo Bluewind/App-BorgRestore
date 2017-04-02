@@ -124,7 +124,7 @@ sub find_archives {
 	}
 
 	if (!@ret) {
-		printf "\e[0;91mWarning:\e[0m Path '%s' not found in any archive.\n", $path;
+		$log->warningf("Path '%s' not found in any archive.\n", $path);
 	}
 
 	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
@@ -139,7 +139,7 @@ sub select_archive_timespec {
 
 	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
-		say STDERR "Error: Invalid time specification";
+		$log->error("Invalid time specification");
 		return;
 	}
 
@@ -209,7 +209,7 @@ sub restore {
 	$path = App::BorgRestore::Helper::untaint($path, qr(.*));
 	my $archive_name = App::BorgRestore::Helper::untaint_archive_name($archive->{archive});
 
-	printf "Restoring %s to %s from archive %s\n", $path, $destination, $archive->{archive};
+	$log->infof("Restoring %s to %s from archive %s", $path, $destination, $archive->{archive});
 
 	my $basename = basename($path);
 	my $components_to_strip =()= $path =~ /\//g;
