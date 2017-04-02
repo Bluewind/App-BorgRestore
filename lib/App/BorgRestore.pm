@@ -179,23 +179,16 @@ sub select_archive_timespec {
 
 	my $target_timestamp = time - $seconds;
 
-	$log->debugf("Searching for newest archive that contains a copy before %s", $self->format_timestamp($target_timestamp));
+	$log->debugf("Searching for newest archive that contains a copy before %s", App::BorgRestore::Helper::format_timestamp($target_timestamp));
 
 	for my $archive (reverse @$archives) {
 		if ($archive->{modification_time} < $target_timestamp) {
-			$log->debugf("Found archive with timestamp %s", $self->format_timestamp($archive->{modification_time}));
+			$log->debugf("Found archive with timestamp %s", App::BorgRestore::Helper::format_timestamp($archive->{modification_time}));
 			return $archive;
 		}
 	}
 
 	die "Failed to find archive matching time specification\n";
-}
-
-sub format_timestamp {
-	my $self = shift;
-	my $timestamp = shift;
-
-	return POSIX::strftime "%a. %F %H:%M:%S %z", localtime $timestamp;
 }
 
 sub _timespec_to_seconds {

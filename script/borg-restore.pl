@@ -187,7 +187,7 @@ sub user_select_archive {
 
 	my $counter = 0;
 	for my $archive (@$archives) {
-		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, $app->format_timestamp($archive->{modification_time}), $archive->{archive};
+		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, App::BorgRestore::Helper::format_timestamp($archive->{modification_time}), $archive->{archive};
 	}
 
 	printf "\e[0;34m%s: \e[0m", "Enter ID to restore (Enter to skip)";
