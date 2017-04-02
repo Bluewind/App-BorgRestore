@@ -199,7 +199,7 @@ sub user_select_archive {
 	return ${$archives}[$selection];
 }
 
-sub main {
+sub logger_setup {
 	my $appender = "Screen";
 	$appender = "ScreenColoredLevels" if -t STDERR; ## no critic (InputOutput::ProhibitInteractiveTest)
 
@@ -230,6 +230,10 @@ sub main {
 		 Log::Log4perl->get_logger()->fatal(@_);
 		 exit(2);
 	};
+}
+
+sub main {
+	logger_setup();
 
 	my %opts;
 	# untaint PATH because we only expect this to run as root
