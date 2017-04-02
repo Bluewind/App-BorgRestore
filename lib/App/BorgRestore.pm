@@ -338,21 +338,6 @@ sub _handle_added_archives {
 	}
 }
 
-sub build_archive_cache {
-	my $self = shift;
-	my $borg_archives = $self->{borg}->borg_list();
-	my $db_path = App::BorgRestore::Settings::get_cache_path('archives.db');
-
-	my $archives = $self->{db}->get_archive_names();
-
-	$log->debugf("Found %d archives in db", scalar(@$archives));
-
-	$self->_handle_removed_archives($borg_archives);
-	$self->_handle_added_archives($borg_archives);
-
-	$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
-}
-
 sub _save_node {
 	my $self = shift;
 	my $archive_id = shift;
@@ -373,9 +358,15 @@ sub _save_node {
 
 sub update_cache {
 	my $self = shift;
-	$log->debug("Checking if cache is complete");
-	$self->build_archive_cache();
-	$log->debug("Cache complete");
+
+	$log->debug("Updating cache if required");
+
+	my $borg_archives = $self->{borg}->borg_list();
+
+	$self->_handle_removed_archives($borg_archives);
+	$self->_handle_added_archives($borg_archives);
+
+	$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
 }
 
 
