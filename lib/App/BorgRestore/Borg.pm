@@ -7,9 +7,12 @@ use IPC::Run qw(run start new_chunker);
 
 sub new {
 	my $class = shift;
+	my $borg_repo = shift;
 
 	my $self = {};
 	bless $self, $class;
+
+	$self->{borg_repo} = $borg_repo;
 
 	return $self;
 }
@@ -18,7 +21,7 @@ sub borg_list {
 	my $self = shift;
 	my @archives;
 
-	run [qw(borg list)], '>', \my $output or die "borg list returned $?";
+	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die "borg list returned $?";
 
 	for (split/^/, $output) {
 		if (m/^([^\s]+)\s/) {
@@ -35,7 +38,7 @@ sub restore {
 	my $archive_name = shift;
 	my $path = shift;
 
-	system(qw(borg extract -v --strip-components), $components_to_strip, "::".$archive_name, $path);
+	system(qw(borg extract -v --strip-components), $components_to_strip, $self->{borg_repo}."::".$archive_name, $path);
 }
 
 sub list_archive {
@@ -43,7 +46,7 @@ sub list_archive {
 	my $archive = shift;
 	my $cb = shift;
 
-	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', "::".$archive);
+	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
 	while (<$fh>) {
 		$cb->($_);
 	}

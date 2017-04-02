@@ -85,7 +85,7 @@ sub new {
 
 	my $db_path = App::BorgRestore::Settings::get_db_path();
 
-	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new();
+	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new($App::BorgRestore::Settings::borg_repo);
 	$self->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path);
 
 	return $self;

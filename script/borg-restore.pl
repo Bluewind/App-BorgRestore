@@ -239,8 +239,6 @@ sub main {
 	# untaint PATH because we only expect this to run as root
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
-	$ENV{BORG_REPO} = $App::BorgRestore::Settings::borg_repo unless $App::BorgRestore::Settings::borg_repo eq "";
-
 	Getopt::Long::Configure ("bundling");
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s") or pod2usage(2);
 	pod2usage(0) if $opts{help};
