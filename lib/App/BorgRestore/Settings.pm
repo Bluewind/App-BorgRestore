@@ -42,6 +42,10 @@ sub get_cache_path {
 	return get_cache_dir()."/$item";
 }
 
+sub get_db_path {
+	return get_cache_path('archives.db');
+}
+
 
 1;
 
