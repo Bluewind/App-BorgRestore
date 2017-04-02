@@ -168,6 +168,9 @@ use File::Spec;
 use Getopt::Long;
 use Log::Any qw($log);
 use Log::Any::Adapter;
+use Log::Log4perl;
+use Log::Log4perl::Layout;
+use Log::Log4perl::Level;
 use Pod::Usage;
 
 my $app;
@@ -196,7 +199,19 @@ sub user_select_archive {
 }
 
 sub main {
-	Log::Any::Adapter->set('Stderr', log_level => "warn");
+	my $appender = "Screen";
+	$appender = "ScreenColoredLevels" if -t STDERR; ## no critic (InputOutput::ProhibitInteractiveTest)
+
+	my $conf = "
+	log4perl.rootLogger = WARN, screenlog
+
+	log4perl.appender.screenlog          = Log::Log4perl::Appender::$appender
+	log4perl.appender.screenlog.stderr   = 1
+	log4perl.appender.screenlog.layout   = Log::Log4perl::Layout::PatternLayout
+	log4perl.appender.screenlog.layout.ConversionPattern = %p %m%n
+	";
+	Log::Log4perl::init( \$conf );
+	Log::Any::Adapter->set('Log4perl');
 
 	my %opts;
 	# untaint PATH because we only expect this to run as root
@@ -209,7 +224,10 @@ sub main {
 	pod2usage(0) if $opts{help};
 
 	if ($opts{debug}) {
-		Log::Any::Adapter->set('Stderr', log_level => "debug");
+		my $logger = Log::Log4perl->get_logger('');
+		$logger->level($DEBUG);
+		Log::Log4perl->appenders()->{"screenlog"}->layout(
+			Log::Log4perl::Layout::PatternLayout->new("%d %r [%30c:%-4L] %p %m%n"));
 	}
 
 	$app = App::BorgRestore->new();
