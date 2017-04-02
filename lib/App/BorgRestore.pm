@@ -93,9 +93,10 @@ sub new {
 	bless $self, $class;
 
 	my $db_path = App::BorgRestore::Settings::get_db_path();
+	my $cache_size = $App::BorgRestore::Settings::sqlite_cache_size;
 
 	$self->{borg} = $deps->{borg} // App::BorgRestore::Borg->new($App::BorgRestore::Settings::borg_repo);
-	$self->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path);
+	$self->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path, $cache_size);
 
 	return $self;
 }

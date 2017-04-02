@@ -61,6 +61,14 @@ same string. The first regex that matches for a given file is used. This
 setting only affects lookups, it does not affect the creation of the database
 with --update-database.
 
+=item C<$sqlite_cache_size>
+
+Default: 102400
+
+The size of the in-memory cache of sqlite in kibibytes. This should be large
+enough to fit the database so that adding new backup data does not need to use
+the disk too much.
+
 =back
 
 =head2 Example Configuration
@@ -73,6 +81,7 @@ with --update-database.
  	{regex => "^/boot", replacement => ""},
  	{regex => "^/", replacement => "mnt/snapshots/root/"},
  );
+ $sqlite_cache_size = 2097152;
 
 =head1 LICENSE
 
@@ -86,6 +95,7 @@ our $cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $EN
 our @backup_prefixes = (
 	{regex => "^/", replacement => ""},
 );
+our $sqlite_cache_size = 102400;
 
 my @configfiles = (
 	sprintf("%s/borg-restore.cfg", $ENV{XDG_CONFIG_HOME} // $ENV{HOME}."/.config"),

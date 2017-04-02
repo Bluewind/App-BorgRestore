@@ -12,15 +12,16 @@ use Log::Any qw($log);
 sub new {
 	my $class = shift;
 	my $db_path = shift;
+	my $cache_size = shift;
 
 	my $self = {};
 	bless $self, $class;
 
 	if (! -f $db_path) {
-		my $db = $self->open_db($db_path);
+		my $db = $self->open_db($db_path, $cache_size);
 		$self->{db}->initialize_db();
 	} else {
-		$self->_open_db($db_path);
+		$self->_open_db($db_path, $cache_size);
 	}
 
 	return $self;
@@ -29,10 +30,11 @@ sub new {
 sub _open_db {
 	my $self = shift;
 	my $dbfile = shift;
+	my $cache_size = shift;
 
 	$log->debugf("Opening database at %s", $dbfile);
 	$self->{dbh} = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {RaiseError => 1, Taint => 1});
-	$self->{dbh}->do("PRAGMA cache_size=-1024000");
+	$self->{dbh}->do("PRAGMA cache_size=-".$cache_size);
 	$self->{dbh}->do("PRAGMA strict=ON");
 }
 
