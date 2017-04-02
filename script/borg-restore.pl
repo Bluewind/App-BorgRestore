@@ -227,7 +227,7 @@ sub main {
 		my $logger = Log::Log4perl->get_logger('');
 		$logger->level($DEBUG);
 		Log::Log4perl->appenders()->{"screenlog"}->layout(
-			Log::Log4perl::Layout::PatternLayout->new("%d %r [%30c:%-4L] %p %m%n"));
+			Log::Log4perl::Layout::PatternLayout->new("%d %8r [%30c:%-4L] %p %m%n"));
 	}
 
 	$app = App::BorgRestore->new();
