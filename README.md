@@ -40,7 +40,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://www.gnu.org/licenses/>.
 
-See gpl-3.0.txt for the full license text.
+See LICENSE for the full license text.
 
 # AUTHOR
 
