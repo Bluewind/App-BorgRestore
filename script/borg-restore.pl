@@ -227,7 +227,8 @@ sub main {
 		return if($^S);
 		local $Log::Log4perl::caller_depth =
 			$Log::Log4perl::caller_depth + 1;
-		 Log::Log4perl->get_logger()->logdie(@_);
+		 Log::Log4perl->get_logger()->fatal(@_);
+		 exit(2);
 	};
 
 	my %opts;
