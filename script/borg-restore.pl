@@ -203,7 +203,7 @@ sub main {
 	$appender = "ScreenColoredLevels" if -t STDERR; ## no critic (InputOutput::ProhibitInteractiveTest)
 
 	my $conf = "
-	log4perl.rootLogger = WARN, screenlog
+	log4perl.rootLogger = INFO, screenlog
 
 	log4perl.appender.screenlog          = Log::Log4perl::Appender::$appender
 	log4perl.appender.screenlog.stderr   = 1
