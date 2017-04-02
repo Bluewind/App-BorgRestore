@@ -263,7 +263,7 @@ sub main {
 	my $canon_path = File::Spec->canonpath($path);
 	my $abs_path = abs_path($canon_path);
 	if (!defined($abs_path)) {
-		$log->fatal("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
+		$log->fatalf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
 		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
 		exit(1);
 	}
