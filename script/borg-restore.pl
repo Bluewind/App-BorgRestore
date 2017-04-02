@@ -236,7 +236,7 @@ sub main {
 	logger_setup();
 
 	my %opts;
-	# untaint PATH because we only expect this to run as root
+	# untaint PATH because we do not expect this to be run across user boundaries
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
