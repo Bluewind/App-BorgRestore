@@ -113,8 +113,8 @@ sub resolve_relative_path {
 	my $abs_path = abs_path($canon_path);
 
 	if (!defined($abs_path)) {
-		$log->fatalf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
-		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
+		$log->errorf("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
+		$log->error("Make sure that all parts of the path, except the last one, exist.");
 		croak "Path resolving failed";
 	}
 
@@ -157,7 +157,7 @@ sub find_archives {
 	}
 
 	if (!@ret) {
-		$log->warningf("Path '%s' not found in any archive.\n", $path);
+		$log->errorf("Path '%s' not found in any archive.\n", $path);
 		croak "Failed to find archives for path";
 	}
 
