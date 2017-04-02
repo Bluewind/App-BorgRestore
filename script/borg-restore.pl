@@ -256,15 +256,15 @@ sub main {
 	}
 
 	if (@ARGV > 1) {
-		say STDERR "Error: Too many arguments";
+		$log->fatal("Too many arguments");
 		exit(1);
 	}
 
 	my $canon_path = File::Spec->canonpath($path);
 	my $abs_path = abs_path($canon_path);
 	if (!defined($abs_path)) {
-		say STDERR "Error: Failed to resolve path to absolute path: $canon_path: $!";
-		say STDERR "Make sure that all parts of the path, except the last one, exist.";
+		$log->fatal("Failed to resolve path to absolute path: %s: %s", $canon_path, $!);
+		$log->fatal("Make sure that all parts of the path, except the last one, exist.");
 		exit(1);
 	}
 
@@ -292,7 +292,7 @@ sub main {
 	}
 
 	if (!defined($selected_archive)) {
-		say STDERR "Error: No archive selected or selection invalid";
+		$log->fatal("No archive selected or selection invalid");
 		return 1;
 	}
 
