@@ -6,6 +6,15 @@ App::BorgRestore - Restore paths from borg backups
 
     use App::BorgRestore;
 
+    my $app = App::BorgRestore->new();
+
+    # Update the cache (call after creating/removing backups)
+    $app->update_cache();
+
+    # Restore a path from a backup that is at least 5 days old. Optionally
+    # restore it to a different directory than the original.
+    $app->restore_simple($path, "5days", $optional_destination_directory);
+
 # DESCRIPTION
 
 App::BorgRestore is a restoration helper for borg.
