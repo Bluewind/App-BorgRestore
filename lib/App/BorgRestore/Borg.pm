@@ -4,6 +4,7 @@ use warnings;
 use strict;
 
 use IPC::Run qw(run start new_chunker);
+use Log::Any qw($log);
 
 sub new {
 	my $class = shift;
@@ -21,6 +22,7 @@ sub borg_list {
 	my $self = shift;
 	my @archives;
 
+	$log->debug("Getting archive list");
 	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die "borg list returned $?";
 
 	for (split/^/, $output) {
@@ -38,6 +40,7 @@ sub restore {
 	my $archive_name = shift;
 	my $path = shift;
 
+	$log->debugf("Restoring '%s' from archive %s, stripping %d components of the path", $path, $archive_name, $components_to_strip);
 	system(qw(borg extract -v --strip-components), $components_to_strip, $self->{borg_repo}."::".$archive_name, $path);
 }
 
@@ -46,6 +49,7 @@ sub list_archive {
 	my $archive = shift;
 	my $cb = shift;
 
+	$log->debugf("Fetching file list for archive %s", $archive);
 	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
 	while (<$fh>) {
 		$cb->($_);
