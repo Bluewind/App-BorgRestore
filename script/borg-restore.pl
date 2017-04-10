@@ -108,6 +108,7 @@ use App::BorgRestore::Settings;
 use autodie;
 use Cwd qw(abs_path);
 use File::Basename;
+use Function::Parameters;
 use Getopt::Long;
 use Log::Any qw($log);
 use Log::Any::Adapter;
@@ -120,9 +121,7 @@ use Pod::Usage;
 
 my $app;
 
-sub user_select_archive {
-	my $archives = shift;
-
+fun user_select_archive ($archives) {
 	my $selected_archive;
 
 	if (!@$archives) {
