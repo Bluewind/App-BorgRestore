@@ -3,13 +3,11 @@ use v5.10;
 use warnings;
 use strict;
 
+use Function::Parameters;
 use IPC::Run qw(run start new_chunker);
 use Log::Any qw($log);
 
-sub new {
-	my $class = shift;
-	my $borg_repo = shift;
-
+method new($class: $borg_repo) {
 	my $self = {};
 	bless $self, $class;
 
@@ -18,8 +16,7 @@ sub new {
 	return $self;
 }
 
-sub borg_list {
-	my $self = shift;
+method borg_list() {
 	my @archives;
 
 	$log->debug("Getting archive list");
@@ -34,21 +31,12 @@ sub borg_list {
 	return \@archives;
 }
 
-sub restore {
-	my $self = shift;
-	my $components_to_strip = shift;
-	my $archive_name = shift;
-	my $path = shift;
-
+method restore($components_to_strip, $archive_name, $path) {
 	$log->debugf("Restoring '%s' from archive %s, stripping %d components of the path", $path, $archive_name, $components_to_strip);
 	system(qw(borg extract -v --strip-components), $components_to_strip, $self->{borg_repo}."::".$archive_name, $path);
 }
 
-sub list_archive {
-	my $self = shift;
-	my $archive = shift;
-	my $cb = shift;
-
+method list_archive($archive, $cb) {
 	$log->debugf("Fetching file list for archive %s", $archive);
 	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
 	while (<$fh>) {
