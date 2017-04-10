@@ -13,17 +13,19 @@ $db->set_true(qw(add_path -begin_work -commit -vacuum -add_archive_name));
 $db->mock('-get_archive_id', sub {return 'prefix-archive-1' if $_[1] eq 'archive-1';});
 $db->mock('-get_archive_names', sub {return []});
 
+$ENV{TZ} = 'UTC';
+
 my $borg = Test::MockObject->new();
 $borg->set_list('borg_list', ['archive-1']);
 $borg->mock('list_archive', sub {
 		my ($self, $archive, $cb) = @_;
-		$cb->("XXX, 1970-01-01 01:00:05 .");
-		$cb->("XXX, 1970-01-01 01:00:10 boot");
-		$cb->("XXX, 1970-01-01 01:00:20 boot/grub");
-		$cb->("XXX, 1970-01-01 01:00:08 boot/grub/grub.cfg");
-		$cb->("XXX, 1970-01-01 01:00:13 boot/foo");
-		$cb->("XXX, 1970-01-01 01:00:13 boot/foo/blub");
-		$cb->("XXX, 1970-01-01 01:00:19 boot/foo/bar");
+		$cb->("XXX, 1970-01-01 00:00:05 .");
+		$cb->("XXX, 1970-01-01 00:00:10 boot");
+		$cb->("XXX, 1970-01-01 00:00:20 boot/grub");
+		$cb->("XXX, 1970-01-01 00:00:08 boot/grub/grub.cfg");
+		$cb->("XXX, 1970-01-01 00:00:13 boot/foo");
+		$cb->("XXX, 1970-01-01 00:00:13 boot/foo/blub");
+		$cb->("XXX, 1970-01-01 00:00:19 boot/foo/bar");
 	} );
 
 # Call the actual function we want to test
