@@ -5,7 +5,6 @@ use warnings;
 
 use App::BorgRestore::Helper;
 
-use Data::Dumper;
 use DBI;
 use Function::Parameters;
 use Log::Any qw($log);
