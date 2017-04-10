@@ -7,13 +7,10 @@ use App::BorgRestore::Helper;
 
 use Data::Dumper;
 use DBI;
+use Function::Parameters;
 use Log::Any qw($log);
 
-sub new {
-	my $class = shift;
-	my $db_path = shift;
-	my $cache_size = shift;
-
+method new($class: $db_path, $cache_size) {
 	my $self = {};
 	bless $self, $class;
 
@@ -27,28 +24,20 @@ sub new {
 	return $self;
 }
 
-sub _open_db {
-	my $self = shift;
-	my $dbfile = shift;
-	my $cache_size = shift;
-
+method _open_db($dbfile, $cache_size) {
 	$log->debugf("Opening database at %s", $dbfile);
 	$self->{dbh} = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {RaiseError => 1, Taint => 1});
 	$self->{dbh}->do("PRAGMA cache_size=-".$cache_size);
 	$self->{dbh}->do("PRAGMA strict=ON");
 }
 
-sub initialize_db {
-	my $self = shift;
-
+method initialize_db() {
 	$log->debug("Creating initial database");
 	$self->{dbh}->do('create table `files` (`path` text, primary key (`path`)) without rowid;');
 	$self->{dbh}->do('create table `archives` (`archive_name` text unique);');
 }
 
-sub get_archive_names {
-	my $self = shift;
-
+method get_archive_names() {
 	my @ret;
 
 	my $st = $self->{dbh}->prepare("select `archive_name` from `archives`;");
@@ -59,19 +48,14 @@ sub get_archive_names {
 	return \@ret;
 }
 
-sub get_archive_row_count {
-	my $self = shift;
-
+method get_archive_row_count() {
 	my $st = $self->{dbh}->prepare("select count(*) count from `files`;");
 	$st->execute();
 	my $result = $st->fetchrow_hashref;
 	return $result->{count};
 }
 
-sub add_archive_name {
-	my $self = shift;
-	my $archive = shift;
-
+method add_archive_name($archive) {
 	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
 
 	my $st = $self->{dbh}->prepare('insert into `archives` (`archive_name`) values (?);');
@@ -80,19 +64,12 @@ sub add_archive_name {
 	$self->_add_column_to_table("files", $archive);
 }
 
-sub _add_column_to_table {
-	my $self = shift;
-	my $table = shift;
-	my $column = shift;
-
+method _add_column_to_table($table, $column) {
 	my $st = $self->{dbh}->prepare('alter table `'.$table.'` add column `'._prefix_archive_id($column).'` integer;');
 	$st->execute();
 }
 
-sub remove_archive {
-	my $self = shift;
-	my $archive = shift;
-
+method remove_archive($archive) {
 	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
 
 	my $archive_id = $self->get_archive_id($archive);
@@ -123,25 +100,17 @@ sub remove_archive {
 	$st->execute($archive);
 }
 
-sub _prefix_archive_id {
-	my $archive = shift;
-
+fun _prefix_archive_id($archive) {
 	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
 
 	return 'timestamp-'.$archive;
 }
 
-sub get_archive_id {
-	my $self = shift;
-	my $archive = shift;
-
+method get_archive_id($archive) {
 	return _prefix_archive_id($archive);
 }
 
-sub get_archives_for_path {
-	my $self = shift;
-	my $path = shift;
-
+method get_archives_for_path($path) {
 	my $st = $self->{dbh}->prepare('select * from `files` where `path` = ?;');
 	$st->execute(App::BorgRestore::Helper::untaint($path, qr(.*)));
 
@@ -164,12 +133,7 @@ sub get_archives_for_path {
 }
 
 
-sub add_path {
-	my $self = shift;
-	my $archive_id = shift;
-	my $path = shift;
-	my $time = shift;
-
+method add_path($archive_id, $path, $time) {
 	my $st = $self->{dbh}->prepare_cached('insert or ignore into `files` (`path`, `'.$archive_id.'`)
 		values(?, ?)');
 	$st->execute($path, $time);
@@ -178,21 +142,15 @@ sub add_path {
 	$st->execute($time, $path);
 }
 
-sub begin_work {
-	my $self = shift;
-
+method begin_work() {
 	$self->{dbh}->begin_work();
 }
 
-sub commit {
-	my $self = shift;
-
+method commit() {
 	$self->{dbh}->commit();
 }
 
-sub vacuum {
-	my $self = shift;
-
+method vacuum() {
 	$self->{dbh}->do("vacuum");
 }
 
