@@ -17,6 +17,7 @@ use File::Basename;
 use File::Slurp;
 use File::Spec;
 use File::Temp;
+use Function::Parameters;
 use Getopt::Long;
 use List::Util qw(any all);
 use Log::Any qw($log);
@@ -85,10 +86,7 @@ Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
 =cut
 
-sub new {
-	my $class = shift;
-	my $deps = shift;
-
+method new($class: $deps = {}) {
 	my $self = {};
 	bless $self, $class;
 
@@ -101,10 +99,7 @@ sub new {
 	return $self;
 }
 
-sub new_no_defaults {
-	my $class = shift;
-	my $deps = shift;
-
+method new_no_defaults($class: $deps) {
 	my $self = {};
 	bless $self, $class;
 
@@ -114,10 +109,7 @@ sub new_no_defaults {
 	return $self;
 }
 
-sub resolve_relative_path {
-	my $self = shift;
-	my $path = shift;
-
+method resolve_relative_path($path) {
 	my $canon_path = File::Spec->canonpath($path);
 	my $abs_path = abs_path($canon_path);
 
@@ -130,10 +122,7 @@ sub resolve_relative_path {
 	return $abs_path;
 }
 
-sub map_path_to_backup_path {
-	my $self = shift;
-	my $abs_path = shift;
-
+method map_path_to_backup_path($abs_path) {
 	my $backup_path = $abs_path;
 
 	for my $backup_prefix (@App::BorgRestore::Settings::backup_prefixes) {
@@ -146,10 +135,7 @@ sub map_path_to_backup_path {
 	return $backup_path;
 }
 
-sub find_archives {
-	my $self = shift;
-	my $path = shift;
-
+method find_archives($path) {
 	my %seen_modtime;
 	my @ret;
 
@@ -175,11 +161,7 @@ sub find_archives {
 	return \@ret;
 }
 
-sub select_archive_timespec {
-	my $self = shift;
-	my $archives = shift;
-	my $timespec = shift;
-
+method select_archive_timespec($archives, $timespec) {
 	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
 		$log->errorf("Invalid time specification: %s", $timespec);
@@ -200,10 +182,7 @@ sub select_archive_timespec {
 	die "Failed to find archive matching time specification\n";
 }
 
-sub _timespec_to_seconds {
-	my $self = shift;
-	my $timespec = shift;
-
+method _timespec_to_seconds($timespec) {
 	if ($timespec =~ m/^(?>(?<value>[0-9.]+))(?>(?<unit>[a-z]+))$/) {
 		my $value = $+{value};
 		my $unit = $+{unit};
@@ -236,12 +215,7 @@ sub _timespec_to_seconds {
 	return;
 }
 
-sub restore {
-	my $self = shift;
-	my $path = shift;
-	my $archive = shift;
-	my $destination = shift;
-
+method restore($path, $archive, $destination) {
 	$destination = App::BorgRestore::Helper::untaint($destination, qr(.*));
 	$path = App::BorgRestore::Helper::untaint($path, qr(.*));
 	my $archive_name = App::BorgRestore::Helper::untaint_archive_name($archive->{archive});
@@ -264,12 +238,7 @@ sub restore {
 	$self->{borg}->restore($components_to_strip, $archive_name, $path);
 }
 
-sub restore_simple {
-	my $self = shift;
-	my $path = shift;
-	my $timespec = shift;
-	my $destination = shift;
-
+method restore_simple($path, $timespec, $destination) {
 	my $abs_path = $self->resolve_relative_path($path);
 	my $backup_path = $self->map_path_to_backup_path($abs_path);
 
@@ -280,12 +249,7 @@ sub restore_simple {
 	$self->restore($backup_path, $selected_archive, $destination);
 }
 
-sub _add_path_to_hash {
-	my $self = shift;
-	my $hash = shift;
-	my $path = shift;
-	my $time = shift;
-
+method _add_path_to_hash($hash, $path, $time) {
 	my @components = split /\//, $path;
 
 	my $node = $hash;
@@ -311,11 +275,7 @@ sub _add_path_to_hash {
 	}
 }
 
-sub get_missing_items {
-	my $self = shift;
-	my $have = shift;
-	my $want = shift;
-
+method get_missing_items($have, $want) {
 	my $ret = [];
 
 	for my $item (@$want) {
@@ -326,10 +286,7 @@ sub get_missing_items {
 	return $ret;
 }
 
-sub _handle_removed_archives {
-	my $self = shift;
-	my $borg_archives = shift;
-
+method _handle_removed_archives($borg_archives) {
 	my $start = Time::HiRes::gettimeofday();
 
 	my $existing_archives = $self->{db}->get_archive_names();
@@ -353,10 +310,7 @@ sub _handle_removed_archives {
 	}
 }
 
-sub _handle_added_archives {
-	my $self = shift;
-	my $borg_archives = shift;
-
+method _handle_added_archives($borg_archives) {
 	my $archives = $self->{db}->get_archive_names();
 	my $add_archives = $self->get_missing_items($archives, $borg_archives);
 
@@ -392,12 +346,7 @@ sub _handle_added_archives {
 	}
 }
 
-sub _save_node {
-	my $self = shift;
-	my $archive_id = shift;
-	my $prefix = shift;
-	my $node = shift;
-
+method _save_node($archive_id, $prefix, $node) {
 	for my $child (keys %{$$node[0]}) {
 		my $path;
 		$path = $prefix."/" if defined($prefix);
@@ -410,9 +359,7 @@ sub _save_node {
 	}
 }
 
-sub update_cache {
-	my $self = shift;
-
+method update_cache() {
 	$log->debug("Updating cache if required");
 
 	my $borg_archives = $self->{borg}->borg_list();
