@@ -14,7 +14,6 @@ use autodie;
 use Carp;
 use Cwd qw(abs_path getcwd);
 use File::Basename;
-use File::Slurp;
 use File::Spec;
 use File::Temp;
 use Function::Parameters;

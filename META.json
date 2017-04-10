@@ -42,7 +42,10 @@
       },
       "runtime" : {
          "requires" : {
+            "DBD::SQLite" : "0",
+            "DBI" : "0",
             "Function::Parameters" : "0",
+            "IPC::Run" : "0",
             "Log::Any" : "0",
             "Log::Any::Adapter::Log4perl" : "0",
             "Log::Log4perl" : "0",
