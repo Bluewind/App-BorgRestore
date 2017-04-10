@@ -1,9 +1,10 @@
 use strict;
 use warnings;
 
-use Test::More;
-use Test::MockObject;
+use POSIX qw(tzset);
 use Test::Differences;
+use Test::MockObject;
+use Test::More;
 
 use App::BorgRestore;
 
@@ -14,6 +15,7 @@ $db->mock('-get_archive_id', sub {return 'prefix-archive-1' if $_[1] eq 'archive
 $db->mock('-get_archive_names', sub {return []});
 
 $ENV{TZ} = 'UTC';
+tzset;
 
 my $borg = Test::MockObject->new();
 $borg->set_list('borg_list', ['archive-1']);
