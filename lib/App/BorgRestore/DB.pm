@@ -14,7 +14,7 @@ method new($class: $db_path, $cache_size) {
 	bless $self, $class;
 
 	if (! -f $db_path) {
-		my $db = $self->open_db($db_path, $cache_size);
+		my $db = $self->_open_db($db_path, $cache_size);
 		$self->{db}->initialize_db();
 	} else {
 		$self->_open_db($db_path, $cache_size);
