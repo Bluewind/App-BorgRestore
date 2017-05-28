@@ -3,6 +3,8 @@ use v5.10;
 use warnings;
 use strict;
 
+use App::BorgRestore::Helper;
+
 use Function::Parameters;
 use IPC::Run qw(run start new_chunker);
 use Log::Any qw($log);
@@ -25,6 +27,27 @@ method borg_list() {
 	for (split/^/, $output) {
 		if (m/^([^\s]+)\s/) {
 			push @archives, $1;
+		}
+	}
+
+	return \@archives;
+}
+
+method borg_list_time() {
+	my @archives;
+
+	$log->debug("Getting archive list");
+	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die "borg list returned $?";
+
+	for (split/^/, $output) {
+		if (m/^([^\s]+)\s+(.+)$/) {
+			my $time = App::BorgRestore::Helper::parse_borg_time($2);
+			if ($time) {
+				push @archives, {
+					"archive" => $1,
+					"modification_time" => $time,
+				};
+			}
 		}
 	}
 

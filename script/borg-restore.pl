@@ -17,6 +17,8 @@ borg-restore.pl [options] <path>
   --destination, -d <path>   Restore backup to directory <path>
   --time, -t <timespec>      Automatically find newest backup that is at least
                              <time spec> old
+  --adhoc                    Do not use the cache, instead provide an
+                             unfiltered list of archive to choose from
 
  Time spec:
   Select the newest backup that is at least <time spec> old.
@@ -69,6 +71,14 @@ directory name.
 Automatically find the newest backup that is at least as old as I<timespec>
 specifies. I<timespec> is a string of the form "<I<number>><I<unit>>" with I<unit> being one of the following:
 s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year). Example: 5.5d
+
+=item B<--adhoc>
+
+Disable usage of the database. In this mode, the list of archives is fetched
+directly from borg at run time.  Use this when the cache has not been created
+yet and you want to restore a file without having to manually call borg
+extract. Using this option will show all archives that borg knows about, even
+if they do not contain the file that shall be restored.
 
 =back
 
@@ -183,7 +193,7 @@ sub main {
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
-	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s") or pod2usage(2);
+	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
 	if ($opts{debug}) {
@@ -207,6 +217,7 @@ sub main {
 	my $path;
 	my $timespec;
 	my $destination;
+	my $archives;
 
 	$path = $ARGV[0];
 
@@ -229,7 +240,11 @@ sub main {
 
 	$log->debug("Asked to restore $backup_path to $destination");
 
-	my $archives = $app->find_archives($backup_path);
+	if ($opts{adhoc}) {
+		$archives = $app->get_all_archives();
+	} else {
+		$archives = $app->find_archives($backup_path);
+	}
 
 	my $selected_archive;
 	if (defined($timespec)) {

@@ -160,6 +160,28 @@ method find_archives($path) {
 	return \@ret;
 }
 
+method get_all_archives() {
+	#my %seen_modtime;
+	my @ret;
+
+	$log->debugf("Fetching list of all archives");
+
+	my $archives = $self->{borg}->borg_list_time();
+
+	for my $archive (@$archives) {
+		push @ret, $archive;
+	}
+
+	if (!@ret) {
+		$log->errorf("No archives found.\n");
+		die "No archives found.\n";
+	}
+
+	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
+
+	return \@ret;
+}
+
 method select_archive_timespec($archives, $timespec) {
 	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
@@ -323,6 +345,7 @@ method _handle_added_archives($borg_archives) {
 			my $line = shift;
 			# roll our own parsing of timestamps for speed since we will be parsing
 			# a huge number of lines here
+			# XXX: this also exists in BorgRestore::Helper::parse_borg_time()
 			# example timestamp: "Wed, 2016-01-27 10:31:59"
 			if ($line =~ m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
 				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
