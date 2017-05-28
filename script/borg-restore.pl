@@ -196,6 +196,8 @@ sub main {
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
+	pod2usage(-verbose => 0) if (@ARGV== 0);
+
 	if ($opts{debug}) {
 		my $logger = Log::Log4perl->get_logger('');
 		$logger->level($DEBUG);
@@ -209,8 +211,6 @@ sub main {
 		$app->update_cache();
 		return 0;
 	}
-
-	pod2usage(-verbose => 0) if (@ARGV== 0);
 
 	my @paths = @ARGV;
 
