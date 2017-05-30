@@ -196,7 +196,7 @@ sub main {
 	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
-	pod2usage(-verbose => 0) if (@ARGV== 0);
+	pod2usage(-verbose => 0) if (@ARGV== 0 and !$opts{"update-cache"});
 
 	if ($opts{debug}) {
 		my $logger = Log::Log4perl->get_logger('');
