@@ -21,6 +21,16 @@ borg-restore.pl \[options\] &lt;path>
      Format: <number><unit>
      Units: s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year)
 
+Example usage:
+
+    > borg-restore.pl bin/backup.sh
+      0: Sat. 2016-04-16 17:47:48 +0200 backup-20160430-232909
+      1: Mon. 2016-08-15 16:11:29 +0200 backup-20160830-225145
+      2: Mon. 2017-02-20 16:01:04 +0100 backup-20170226-145909
+      3: Sat. 2017-03-25 14:45:29 +0100 backup-20170325-232957
+    Enter ID to restore (Enter to skip): 3
+    INFO Restoring home/flo/bin/backup.sh to /home/flo/bin from archive backup-20170325-232957
+
 # DESCRIPTION
 
 borg-restore.pl helps to restore files from borg backups.
