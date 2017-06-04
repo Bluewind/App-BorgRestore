@@ -8,5 +8,9 @@ use strict;
 
 use Module::Build::Tiny 0.035;
 
+use Devel::CheckBin;
+
+check_bin('borg');
+
 Build_PL();
 

@@ -4,3 +4,5 @@ readme_from="script/borg-restore.pl"
 module_maker="ModuleBuildTiny"
 license="gpl_3"
 
+requires_external_bin=["borg"]
+
