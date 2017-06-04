@@ -41,6 +41,9 @@ passed and restore it without further user interaction.
 B<borg-restore.pl --update-cache> has to be executed regularly, ideally after
 creating or removing backups.
 
+L<App::BorgRestore> provides the base features used to implement this script.
+It can be used to build your own restoration script.
+
 =cut
 
 =head1 OPTIONS

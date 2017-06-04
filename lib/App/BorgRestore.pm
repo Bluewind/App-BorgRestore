@@ -55,7 +55,7 @@ automatically determined based on the age of the path.
 The cache has to be updated regularly, ideally after creating or removing
 backups.
 
-B<borg-restore.pl> is a wrapper around this class that allows for simple CLI
+L<borg-restore.pl> is a wrapper around this class that allows for simple CLI
 usage.
 
 This package uses L<Log::Any> for logging.

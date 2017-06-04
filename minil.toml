@@ -1,4 +1,5 @@
 name = "App-BorgRestore"
+readme_from="script/borg-restore.pl"
 # badges = ["travis"]
 module_maker="ModuleBuildTiny"
 license="gpl_3"

@@ -1,36 +1,83 @@
 # NAME
 
-App::BorgRestore - Restore paths from borg backups
+borg-restore.pl - Restore paths from borg backups
 
 # SYNOPSIS
 
-    use App::BorgRestore;
+borg-restore.pl \[options\] &lt;path>
 
-    my $app = App::BorgRestore->new();
+    Options:
+     --help, -h                 short help message
+     --debug                    show debug messages
+     --update-cache, -u         update cache files
+     --destination, -d <path>   Restore backup to directory <path>
+     --time, -t <timespec>      Automatically find newest backup that is at least
+                                <time spec> old
+     --adhoc                    Do not use the cache, instead provide an
+                                unfiltered list of archive to choose from
 
-    # Update the cache (call after creating/removing backups)
-    $app->update_cache();
-
-    # Restore a path from a backup that is at least 5 days old. Optionally
-    # restore it to a different directory than the original.
-    $app->restore_simple($path, "5days", $optional_destination_directory);
+    Time spec:
+     Select the newest backup that is at least <time spec> old.
+     Format: <number><unit>
+     Units: s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year)
 
 # DESCRIPTION
 
-App::BorgRestore is a restoration helper for borg.
+borg-restore.pl helps to restore files from borg backups.
 
-It maintains a cache of borg backup contents (path and latest modification
-time) and allows to quickly look up backups that contain a path. It further
-supports restoring a path from an archive. The archive to be used can also be
-automatically determined based on the age of the path.
+It takes one path, looks for its backups, shows a list of distinct versions and
+allows to select one to be restored. Versions are based on the modification
+time of the file.
 
-The cache has to be updated regularly, ideally after creating or removing
-backups.
+It is also possible to specify a time for automatic selection of the backup
+that has to be restored. If a time is specified, the script will automatically
+select the newest backup that is at least as old as the time value that is
+passed and restore it without further user interaction.
 
-**borg-restore.pl** is a wrapper around this class that allows for simple CLI
-usage.
+**borg-restore.pl --update-cache** has to be executed regularly, ideally after
+creating or removing backups.
 
-This package uses [Log::Any](https://metacpan.org/pod/Log::Any) for logging.
+[App::BorgRestore](https://metacpan.org/pod/App::BorgRestore) provides the base features used to implement this script.
+It can be used to build your own restoration script.
+
+# OPTIONS
+
+- **--help**, **-h**
+
+    Show help message.
+
+- **--debug**
+
+    Enable debug messages.
+
+- **--update-cache**, **-u**
+
+    Update the lookup database. You should run this after creating or removing a backup.
+
+- **--destination=**_path_, **-d **_path_
+
+    Restore the backup to 'path' instead of its original location. The destination
+    either has to be a directory or missing in which case it will be created. The
+    backup will then be restored into the directory with its original file or
+    directory name.
+
+- **--time=**_timespec_, **-t **_timespec_
+
+    Automatically find the newest backup that is at least as old as _timespec_
+    specifies. _timespec_ is a string of the form "<_number_><_unit_>" with _unit_ being one of the following:
+    s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year). Example: 5.5d
+
+- **--adhoc**
+
+    Disable usage of the database. In this mode, the list of archives is fetched
+    directly from borg at run time.  Use this when the cache has not been created
+    yet and you want to restore a file without having to manually call borg
+    extract. Using this option will show all archives that borg knows about, even
+    if they do not contain the file that shall be restored.
+
+# CONFIGURATION
+
+For configuration options please see [App::BorgRestore::Settings](https://metacpan.org/pod/App::BorgRestore::Settings).
 
 # LICENSE
 
@@ -50,7 +97,3 @@ You should have received a copy of the GNU General Public License
 along with this program.  If not, see &lt;http://www.gnu.org/licenses/>.
 
 See LICENSE for the full license text.
-
-# AUTHOR
-
-Florian Pritz <bluewind@xinu.at>
