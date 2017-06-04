@@ -63,6 +63,17 @@
       }
    },
    "release_status" : "unstable",
+   "resources" : {
+      "bugtracker" : {
+         "web" : "https://github.com/Bluewind/App-BorgRestore/issues"
+      },
+      "homepage" : "https://github.com/Bluewind/App-BorgRestore",
+      "repository" : {
+         "type" : "git",
+         "url" : "git://github.com/Bluewind/App-BorgRestore.git",
+         "web" : "https://github.com/Bluewind/App-BorgRestore"
+      }
+   },
    "version" : "2.0.0",
    "x_serialization_backend" : "JSON::PP version 2.27400_02"
 }
