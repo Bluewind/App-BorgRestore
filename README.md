@@ -21,7 +21,7 @@ borg-restore.pl \[options\] &lt;path>
      Format: <number><unit>
      Units: s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year)
 
-Example usage:
+# EXAMPLE USAGE
 
     > borg-restore.pl bin/backup.sh
       0: Sat. 2016-04-16 17:47:48 +0200 backup-20160430-232909
