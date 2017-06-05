@@ -12,5 +12,6 @@ on 'test' => sub {
 	requires 'Test::MockObject';
 	requires 'Test::Exception';
 	requires 'Test::Differences';
+	requires 'Test::Pod';
 };
 
