@@ -14,5 +14,6 @@ on 'test' => sub {
 	requires 'Test::Exception';
 	requires 'Test::Differences';
 	requires 'Test::Pod';
+	requires 'Test::Pod::Coverage';
 };
 
