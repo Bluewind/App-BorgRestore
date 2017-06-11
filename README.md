@@ -85,6 +85,10 @@ It can be used to build your own restoration script.
     extract. Using this option will show all archives that borg knows about, even
     if they do not contain the file that shall be restored.
 
+- **--version**
+
+    Output the program version.
+
 # CONFIGURATION
 
 For configuration options please see [App::BorgRestore::Settings](https://metacpan.org/pod/App::BorgRestore::Settings).
