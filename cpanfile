@@ -6,6 +6,7 @@ requires 'IPC::Run';
 requires 'Log::Any';
 requires 'Log::Any::Adapter::Log4perl';
 requires 'Log::Log4perl';
+requires 'File::pushd';
 
 on 'test' => sub {
     requires 'Test::More', '0.98';

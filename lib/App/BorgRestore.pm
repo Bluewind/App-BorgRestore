@@ -14,6 +14,7 @@ use autodie;
 use Carp;
 use Cwd qw(abs_path getcwd);
 use File::Basename;
+use File::pushd;
 use File::Spec;
 use File::Temp;
 use Function::Parameters;
@@ -330,16 +331,18 @@ method restore($path, $archive, $destination) {
 	my $components_to_strip =()= $path =~ /\//g;
 
 	$log->debugf("CWD is %s", getcwd());
-	$log->debugf("Changing CWD to %s", $destination);
-	mkdir($destination) unless -d $destination;
-	chdir($destination) or die "Failed to chdir: $!";
-	# TODO chdir back to original after restore
+	{
+		$log->debugf("Changing CWD to %s", $destination);
+		mkdir($destination) unless -d $destination;
+		my $workdir = pushd($destination, {untaint_pattern => qr{^(.*)$}});
 
-	my $final_destination = abs_path($basename);
-	$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
-	$log->debugf("Removing %s", $final_destination);
-	File::Path::remove_tree($final_destination);
-	$self->{borg}->restore($components_to_strip, $archive_name, $path);
+		my $final_destination = abs_path($basename);
+		$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
+		$log->debugf("Removing %s", $final_destination);
+		File::Path::remove_tree($final_destination);
+		$self->{borg}->restore($components_to_strip, $archive_name, $path);
+	}
+	$log->debugf("CWD is %s", getcwd());
 }
 
 =head3 restore_simple
