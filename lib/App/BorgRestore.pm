@@ -217,7 +217,6 @@ The returned data structure is the same as that returned by C<find_archives>.
 =cut
 
 method get_all_archives() {
-	#my %seen_modtime;
 	my @ret;
 
 	$log->debugf("Fetching list of all archives");
