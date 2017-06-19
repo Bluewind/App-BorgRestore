@@ -19,6 +19,7 @@ borg-restore.pl [options] <path>
                              <time spec> old
   --adhoc                    Do not use the cache, instead provide an
                              unfiltered list of archive to choose from
+  --version                  display the version of the program
 
  Time spec:
   Select the newest backup that is at least <time spec> old.
