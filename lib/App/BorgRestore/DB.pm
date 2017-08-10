@@ -1,5 +1,5 @@
 package App::BorgRestore::DB;
-use v5.10;
+use v5.14;
 use strict;
 use warnings;
 
