@@ -9,6 +9,18 @@ use Function::Parameters;
 use IPC::Run qw(run start new_chunker);
 use Log::Any qw($log);
 
+=encoding utf-8
+
+=head1 NAME
+
+App::BorgRestore::Borg - Borg abstraction
+
+=head1 DESCRIPTION
+
+App::BorgRestore::Borg abstracts borg commands used by L<App::BorgRestore>.
+
+=cut
+
 method new($class: $borg_repo) {
 	my $self = {};
 	bless $self, $class;

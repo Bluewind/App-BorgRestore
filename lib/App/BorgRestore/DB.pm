@@ -9,6 +9,18 @@ use DBI;
 use Function::Parameters;
 use Log::Any qw($log);
 
+=encoding utf-8
+
+=head1 NAME
+
+App::BorgRestore::DB - Database layer
+
+=head1 DESCRIPTION
+
+App::BorgRestore::DB abstracts the database storage used internally by L<App::BorgRestore>.
+
+=cut
+
 method new($class: $db_path, $cache_size) {
 	my $self = {};
 	bless $self, $class;
