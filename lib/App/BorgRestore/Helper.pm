@@ -3,6 +3,7 @@ use v5.14;
 use strict;
 use warnings;
 
+use autodie;
 use Function::Parameters;
 use POSIX ();
 

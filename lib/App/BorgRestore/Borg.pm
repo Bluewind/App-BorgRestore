@@ -5,6 +5,7 @@ use strict;
 
 use App::BorgRestore::Helper;
 
+use autodie;
 use Function::Parameters;
 use IPC::Run qw(run start new_chunker);
 use Log::Any qw($log);

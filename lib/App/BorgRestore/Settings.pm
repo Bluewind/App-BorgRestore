@@ -5,6 +5,7 @@ use warnings;
 
 use App::BorgRestore::Helper;
 
+use autodie;
 use File::Path qw(mkpath);
 use Sys::Hostname;
 
