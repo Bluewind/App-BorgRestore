@@ -35,7 +35,7 @@ method borg_list() {
 	my @archives;
 
 	$log->debug("Getting archive list");
-	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die "borg list returned $?";
+	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
 
 	for (split/^/, $output) {
 		if (m/^([^\s]+)\s/) {
@@ -50,7 +50,7 @@ method borg_list_time() {
 	my @archives;
 
 	$log->debug("Getting archive list");
-	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die "borg list returned $?";
+	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
 
 	for (split/^/, $output) {
 		if (m/^([^\s]+)\s+(.+)$/) {
