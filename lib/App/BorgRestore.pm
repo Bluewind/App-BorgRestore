@@ -195,8 +195,7 @@ method find_archives($path) {
 	}
 
 	if (!@ret) {
-		$log->errorf("Path '%s' not found in any archive.\n", $path);
-		die "Failed to find archives for path\n";
+		die $log->errorf("Path '%s' not found in any archive.", $path)."\n";
 	}
 
 	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
@@ -228,8 +227,7 @@ method get_all_archives() {
 	}
 
 	if (!@ret) {
-		$log->errorf("No archives found.\n");
-		die "No archives found.\n";
+		die $log->error("No archives found.")."\n";
 	}
 
 	@ret = sort { $a->{modification_time} <=> $b->{modification_time} } @ret;
@@ -252,8 +250,7 @@ s (seconds), min (minutes), h (hours), d (days), m (months = 31 days), y (year).
 method select_archive_timespec($archives, $timespec) {
 	my $seconds = $self->_timespec_to_seconds($timespec);
 	if (!defined($seconds)) {
-		$log->errorf("Invalid time specification: %s", $timespec);
-		croak "Invalid time specification";
+		croak $log->errorf("Invalid time specification: %s", $timespec);
 	}
 
 	my $target_timestamp = time - $seconds;
@@ -267,7 +264,7 @@ method select_archive_timespec($archives, $timespec) {
 		}
 	}
 
-	die "Failed to find archive matching time specification\n";
+	die $log->error("Failed to find archive matching time specification")."\n";
 }
 
 method _timespec_to_seconds($timespec) {
