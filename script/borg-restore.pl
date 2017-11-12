@@ -198,7 +198,7 @@ sub logger_setup {
 		return if($^S);
 		local $Log::Log4perl::caller_depth =
 			$Log::Log4perl::caller_depth + 1;
-		 Log::Log4perl->get_logger()->fatal(@_);
+		 Log::Log4perl->get_logger()->fatal("Uncaught exception: ".$_[0], @_[1..$#_]);
 		 exit(2);
 	};
 }
