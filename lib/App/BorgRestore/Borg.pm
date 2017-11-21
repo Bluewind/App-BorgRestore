@@ -107,7 +107,14 @@ method restore($components_to_strip, $archive_name, $path) {
 
 method list_archive($archive, $cb) {
 	$log->debugf("Fetching file list for archive %s", $archive);
-	open (my $fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
+	my $fh;
+
+	if (Version::Compare::version_compare($self->{borg_version}, "1.1") >= 0) {
+		open ($fh, '-|', 'borg', qw/list --format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
+	} else {
+		open ($fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
+	}
+
 	while (<$fh>) {
 		$cb->($_);
 	}
