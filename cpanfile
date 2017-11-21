@@ -17,6 +17,9 @@ requires 'Log::Log4perl::Level';
 requires 'Pod::Usage';
 requires 'autodie';
 requires 'perl', 'v5.14.0';
+requires 'Version::Compare';
+requires 'JSON';
+requires 'Date::Parse';
 
 on configure => sub {
 	requires 'Devel::CheckBin';

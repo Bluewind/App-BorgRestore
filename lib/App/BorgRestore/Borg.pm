@@ -6,9 +6,12 @@ use strict;
 use App::BorgRestore::Helper;
 
 use autodie;
+use Date::Parse;
 use Function::Parameters;
 use IPC::Run qw(run start new_chunker);
+use JSON;
 use Log::Any qw($log);
+use Version::Compare;
 
 =encoding utf-8
 
@@ -66,18 +69,30 @@ method borg_list() {
 method borg_list_time() {
 	my @archives;
 
-	$log->debug("Getting archive list");
-	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
+	if (Version::Compare::version_compare($self->{borg_version}, "1.1") >= 0) {
+		$log->debug("Getting archive list via json");
+		run [qw(borg list --json), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
+		my $json = decode_json($output);
+		for my $archive (@{$json->{archives}}) {
+			push @archives, {
+				"archive" => $archive->{archive},
+				"modification_time" => str2time($archive->{time}),
+			};
+		}
+	} else {
+		$log->debug("Getting archive list");
+		run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
 
-	for (split/^/, $output) {
-		# example timestamp: "Wed, 2016-01-27 10:31:59" = 24 chars
-		if (m/^([^\s]+)\s+(.{24})/) {
-			my $time = App::BorgRestore::Helper::parse_borg_time($2);
-			if ($time) {
-				push @archives, {
-					"archive" => $1,
-					"modification_time" => $time,
-				};
+		for (split/^/, $output) {
+			# example timestamp: "Wed, 2016-01-27 10:31:59" = 24 chars
+			if (m/^([^\s]+)\s+(.{24})/) {
+				my $time = App::BorgRestore::Helper::parse_borg_time($2);
+				if ($time) {
+					push @archives, {
+						"archive" => $1,
+						"modification_time" => $time,
+					};
+				}
 			}
 		}
 	}
