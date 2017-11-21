@@ -28,8 +28,25 @@ method new($class: $borg_repo) {
 
 	$self->{borg_repo} = $borg_repo;
 
+	$self->{borg_version} = $self->borg_version();
+
 	return $self;
 }
+
+=head3 borg_version
+
+Return the version of borg.
+
+=cut
+
+method borg_version() {
+	run [qw(borg --version)], ">", \my $output or die $log->error("Failed to determined borg version")."\n";
+	if ($output =~ m/^.* ([0-9.a-z]+)$/) {
+		return $1;
+	}
+	die $log->error("Unable to extract borg version from borg --version output")."\n";
+}
+
 
 method borg_list() {
 	my @archives;
