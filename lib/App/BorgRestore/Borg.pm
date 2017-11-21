@@ -53,7 +53,8 @@ method borg_list_time() {
 	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
 
 	for (split/^/, $output) {
-		if (m/^([^\s]+)\s+(.+)$/) {
+		# example timestamp: "Wed, 2016-01-27 10:31:59" = 24 chars
+		if (m/^([^\s]+)\s+(.{24})/) {
 			my $time = App::BorgRestore::Helper::parse_borg_time($2);
 			if ($time) {
 				push @archives, {
