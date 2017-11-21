@@ -54,12 +54,21 @@ method borg_version() {
 method borg_list() {
 	my @archives;
 
-	$log->debug("Getting archive list");
-	run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
+	if (Version::Compare::version_compare($self->{borg_version}, "1.1") >= 0) {
+		$log->debug("Getting archive list via json");
+		run [qw(borg list --json), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
+		my $json = decode_json($output);
+		for my $archive (@{$json->{archives}}) {
+			push @archives, $archive->{archive};
+		}
+	} else {
+		$log->debug("Getting archive list");
+		run [qw(borg list), $self->{borg_repo}], '>', \my $output or die $log->error("borg list returned $?")."\n";
 
-	for (split/^/, $output) {
-		if (m/^([^\s]+)\s/) {
-			push @archives, $1;
+		for (split/^/, $output) {
+			if (m/^([^\s]+)\s/) {
+				push @archives, $1;
+			}
 		}
 	}
 
