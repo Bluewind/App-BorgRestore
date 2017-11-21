@@ -235,6 +235,19 @@ method get_all_archives() {
 	return \@ret;
 }
 
+=head3 cache_contains_data
+
+ if ($app->cache_contains_data()) { ... }
+
+Returns 1 if the cache contains any archive data, 0 otherwise.
+
+=cut
+
+method cache_contains_data() {
+	my $existing_archives = $self->{db}->get_archive_names();
+	return @{$existing_archives}+0 > 0 ? 1 : 0;
+}
+
 =head3 select_archive_timespec
 
  my $archive = $app->select_archive_timespec($archives, $timespec);

@@ -235,6 +235,11 @@ sub main {
 		return 0;
 	}
 
+	if (!$app->cache_contains_data()) {
+		$opts{"adhoc"} = 1;
+		$log->warning("Cache is empty. --adhoc has been enabled for you automatically");
+	}
+
 	my @paths = @ARGV;
 
 	my $path;
