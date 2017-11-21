@@ -36,6 +36,10 @@ You can set the following options in the config file.
 Note that the configuration file is parsed as a perl script. Thus you can also
 use any features available in perl itself.
 
+Also note that it is important that the last statement of the file is positive
+because it is used to check that running the config went well. You can simply
+use "1;" on the last line as shown in the example config.
+
 =over
 
 =item C<$borg_repo>
@@ -84,6 +88,8 @@ the disk too much.
  	{regex => "^/", replacement => "mnt/snapshots/root/"},
  );
  $sqlite_cache_size = 2097152;
+
+1; #ensure positive return value
 
 =head1 LICENSE
 
