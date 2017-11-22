@@ -72,6 +72,8 @@ method borg_list() {
 		}
 	}
 
+	$log->warning("No archives detected in borg output. Either you have no backups or this is a bug") if @archives == 0;
+
 	return \@archives;
 }
 
@@ -105,6 +107,8 @@ method borg_list_time() {
 			}
 		}
 	}
+
+	$log->warning("No archives detected in borg output. Either you have no backups or this is a bug") if @archives == 0;
 
 	return \@archives;
 }
