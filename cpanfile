@@ -1,7 +1,6 @@
 requires 'DBD::SQLite';
 requires 'DBI';
 requires 'Path::Tiny';
-requires 'File::Temp';
 requires 'File::pushd';
 requires 'Function::Parameters';
 requires 'Getopt::Long';

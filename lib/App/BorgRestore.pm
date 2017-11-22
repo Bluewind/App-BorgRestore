@@ -13,10 +13,8 @@ use App::BorgRestore::Settings;
 use autodie;
 use Carp;
 use Cwd qw(abs_path getcwd);
-use File::Basename;
+use Path::Tiny;
 use File::pushd;
-use File::Spec;
-use File::Temp;
 use Function::Parameters;
 use Getopt::Long;
 use List::Util qw(any all);
@@ -130,7 +128,7 @@ Returns an absolute path for a given path.
 =cut
 
 method resolve_relative_path($path) {
-	my $canon_path = File::Spec->canonpath($path);
+	my $canon_path = path($path)->canonpath;
 	my $abs_path = abs_path($canon_path);
 
 	if (!defined($abs_path)) {
@@ -336,7 +334,7 @@ method restore($path, $archive, $destination) {
 
 	$log->infof("Restoring %s to %s from archive %s", $path, $destination, $archive->{archive});
 
-	my $basename = basename($path);
+	my $basename = path($path)->basename;
 	my $components_to_strip =()= $path =~ /\//g;
 
 	$log->debugf("CWD is %s", getcwd());
