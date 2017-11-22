@@ -6,7 +6,6 @@ use warnings;
 use App::BorgRestore::Helper;
 
 use autodie;
-use File::Path qw(mkpath);
 use Sys::Hostname;
 
 =encoding utf-8
@@ -123,9 +122,6 @@ for my $configfile (@configfiles) {
 	}
 }
 $cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
-
-# ensure the cache directory exists
-mkpath(get_cache_dir(), {mode => oct(700)});
 
 sub get_cache_dir {
 	return "$cache_path_base/v2";
