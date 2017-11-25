@@ -123,7 +123,7 @@ method list_archive($archive, $cb) {
 	my $fh;
 
 	if (Version::Compare::version_compare($self->{borg_version}, "1.1") >= 0) {
-		open ($fh, '-|', 'borg', qw/list --format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
+		open ($fh, '-|', 'borg', qw/list --format/, '{mtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
 	} else {
 		open ($fh, '-|', 'borg', qw/list --list-format/, '{isomtime} {path}{NEWLINE}', $self->{borg_repo}."::".$archive);
 	}
