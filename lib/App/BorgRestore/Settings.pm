@@ -123,6 +123,11 @@ for my $configfile (@configfiles) {
 }
 $cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
 
+sub get_cache_base_dir_path {
+	my $path = shift;
+	return "$cache_path_base/$path";
+}
+
 sub get_cache_dir {
 	return "$cache_path_base/v3";
 }

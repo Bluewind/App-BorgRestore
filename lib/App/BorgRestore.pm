@@ -505,6 +505,12 @@ Updates the database used by e.g. C<find_archives>.
 =cut
 
 method update_cache() {
+	my $v2_basedir = App::BorgRestore::Settings::get_cache_base_dir_path("v2");
+	if (-e $v2_basedir) {
+		$log->info("Removing old v2 cache directory: $v2_basedir");
+		path($v2_basedir)->remove_tree;
+	}
+
 	$log->debug("Updating cache if required");
 
 	my $borg_archives = $self->{borg}->borg_list();
