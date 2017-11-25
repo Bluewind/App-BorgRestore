@@ -124,7 +124,7 @@ for my $configfile (@configfiles) {
 $cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
 
 sub get_cache_dir {
-	return "$cache_path_base/v2";
+	return "$cache_path_base/v3";
 }
 
 sub get_cache_path {
