@@ -93,7 +93,7 @@ the disk too much.
  );
  $sqlite_cache_size = 2097152;
 
-1; #ensure positive return value
+ 1; #ensure positive return value
 
 =head1 LICENSE
 
