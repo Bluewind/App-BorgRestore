@@ -9,6 +9,7 @@ use autodie;
 use DBI;
 use Function::Parameters;
 use Log::Any qw($log);
+use Number::Bytes::Human qw(format_bytes);
 use Path::Tiny;
 
 =encoding utf-8
@@ -36,6 +37,7 @@ method new($class: $db_path, $cache_size) {
 	} else {
 		$self->_open_db($db_path, $cache_size);
 	}
+	$self->{cache_size} = $cache_size;
 
 	return $self;
 }
@@ -164,6 +166,15 @@ method begin_work() {
 
 method commit() {
 	$self->{dbh}->commit();
+}
+
+method verify_cache_fill_rate_ok() {
+	my $used = $self->{dbh}->sqlite_db_status()->{cache_used}->{current};
+	$log->debugf("sqlite page cache usage: %s", format_bytes($used, si=>1));
+	if ($used > $self->{cache_size} * 1024 * 0.95) {
+		$log->warnf("sqlite cache usage is %s of %s", format_bytes($used, si=>1), format_bytes($self->{cache_size} * 1024, si => 1));
+		$log->warn("Consider increasing the sqlite cache (see documentation of App::BorgRestore::Settings)");
+	}
 }
 
 method vacuum() {

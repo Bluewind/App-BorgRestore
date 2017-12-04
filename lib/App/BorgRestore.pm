@@ -438,6 +438,7 @@ method _handle_removed_archives($borg_archives) {
 			$self->{db}->remove_archive($archive);
 			$self->{db}->commit;
 			$self->{db}->vacuum;
+			$self->{db}->verify_cache_fill_rate_ok();
 		}
 
 		my $end = Time::HiRes::gettimeofday();
@@ -476,6 +477,7 @@ method _handle_added_archives($borg_archives) {
 		$self->_save_node($archive_id,  undef, $lookuptable);
 		$self->{db}->commit;
 		$self->{db}->vacuum;
+		$self->{db}->verify_cache_fill_rate_ok();
 
 		my $end = Time::HiRes::gettimeofday();
 		$log->debugf("Adding archive finished after: %.5fs (parsing borg output took %.5fs)", $end - $start, $borg_time - $start);
@@ -519,6 +521,7 @@ method update_cache() {
 	$self->_handle_added_archives($borg_archives);
 
 	$log->debugf("DB contains information for %d archives in %d rows", scalar(@{$self->{db}->get_archive_names()}), $self->{db}->get_archive_row_count());
+	$self->{db}->verify_cache_fill_rate_ok();
 }
 
 
