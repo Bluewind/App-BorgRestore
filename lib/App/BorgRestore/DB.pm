@@ -177,6 +177,22 @@ method verify_cache_fill_rate_ok() {
 	}
 }
 
+method search_path($pattern) {
+	$log->debugf("Preparing path search for pattern '%s'", $pattern);
+	my $st = $self->{dbh}->prepare('select path from files where path like ?');
+	$log->debug("Executing search");
+	$st->execute($pattern);
+	$log->debug("Fetching search result");
+
+	my @ret;
+	while (my $row = $st->fetchrow_hashref()) {
+		push @ret, $row->{path};
+	}
+
+	$log->debugf("Found %d matching paths", 0+@ret);
+	return \@ret;
+}
+
 method vacuum() {
 	$self->{dbh}->do("vacuum");
 }

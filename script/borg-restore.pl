@@ -14,6 +14,8 @@ borg-restore.pl [options] <path>
   --help, -h                 short help message
   --debug                    show debug messages
   --update-cache, -u         update cache files
+  --list [pattern]           List paths contained in the backups, optionally
+                             matching an SQLite LIKE pattern
   --destination, -d <path>   Restore backup to directory <path>
   --time, -t <timespec>      Automatically find newest backup that is at least
                              <time spec> old
@@ -72,6 +74,12 @@ Enable debug messages.
 =item B<--update-cache>, B<-u>
 
 Update the lookup database. You should run this after creating or removing a backup.
+
+=item B<--list> B<[pattern]>
+
+List paths contained in the backups, optionally matching an SQLite LIKE
+pattern. If no % occurs in the pattern, the patterns is automatically wrapped
+between two % so it may match anywhere in the path.
 
 =item B<--destination=>I<path>, B<-d >I<path>
 
@@ -211,7 +219,7 @@ sub main {
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
-	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version") or pod2usage(2);
+	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
 	if ($opts{version}) {
@@ -219,7 +227,7 @@ sub main {
 		return 0;
 	}
 
-	pod2usage(-verbose => 0) if (@ARGV== 0 and !$opts{"update-cache"});
+	pod2usage(-verbose => 0) if (@ARGV== 0 and !$opts{"update-cache"} and !$opts{"list"});
 
 	if ($opts{debug}) {
 		my $logger = Log::Log4perl->get_logger('');
@@ -232,6 +240,21 @@ sub main {
 
 	if ($opts{"update-cache"}) {
 		$app->update_cache();
+		return 0;
+	}
+
+	if ($opts{"list"}) {
+		my @patterns = @ARGV;
+		push @patterns, '', if @patterns == 0;
+
+		for my $pattern (@patterns) {
+			$pattern = App::BorgRestore::Helper::untaint($pattern, qr/.*/);
+
+			my $paths = $app->search_path($pattern);
+			for my $path (@$paths) {
+				printf "%s\n", $path;
+			}
+		}
 		return 0;
 	}
 

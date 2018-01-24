@@ -402,6 +402,21 @@ method _add_path_to_hash($hash, $path, $time) {
 	}
 }
 
+=head3 search_path
+
+ my $paths = $app->search_path($pattern)
+
+Returns a arrayref of paths that match the pattern. The pattern is matched as
+an sqlite LIKE pattern. If no % occurs in the pattern, the patterns is
+automatically wrapped between two % so it may match anywhere in the path.
+
+=cut
+
+method search_path($pattern) {
+	$pattern = '%'.$pattern.'%' if $pattern !~ m/%/;
+	return $self->{db}->search_path($pattern);
+}
+
 =head3 get_missing_items
 
  my $items = $app->get_missing_items($have, $want);
