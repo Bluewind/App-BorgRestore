@@ -532,6 +532,8 @@ method update_cache() {
 
 	my $borg_archives = $self->{borg}->borg_list();
 
+	# write operations benefit from the large cache so set the cache size here
+	$self->{db}->set_cache_size();
 	$self->_handle_removed_archives($borg_archives);
 	$self->_handle_added_archives($borg_archives);
 

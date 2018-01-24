@@ -32,21 +32,24 @@ method new($class: $db_path, $cache_size) {
 		# ensure the cache directory exists
 		path($db_path)->parent->mkpath({mode => oct(700)});
 
-		my $db = $self->_open_db($db_path, $cache_size);
+		my $db = $self->_open_db($db_path);
 		$self->initialize_db();
 	} else {
-		$self->_open_db($db_path, $cache_size);
+		$self->_open_db($db_path);
 	}
 	$self->{cache_size} = $cache_size;
 
 	return $self;
 }
 
-method _open_db($dbfile, $cache_size) {
+method _open_db($dbfile) {
 	$log->debugf("Opening database at %s", $dbfile);
 	$self->{dbh} = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {RaiseError => 1, Taint => 1});
-	$self->{dbh}->do("PRAGMA cache_size=-".$cache_size);
 	$self->{dbh}->do("PRAGMA strict=ON");
+}
+
+method set_cache_size() {
+	$self->{dbh}->do("PRAGMA cache_size=-".$self->{cache_size});
 }
 
 method initialize_db() {
