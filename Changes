@@ -1,6 +1,7 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- No longer automatically enable --adhoc when cache is empty
 
 2.3.0 2018-02-06T15:58:36Z
 	- Add --list option to search for paths occuring in backups
