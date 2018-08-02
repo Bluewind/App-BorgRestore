@@ -9,6 +9,7 @@ borg-restore.pl \[options\] &lt;path>
     Options:
      --help, -h                 short help message
      --debug                    show debug messages
+     --quiet                    show only warnings and errors
      --update-cache, -u         update cache files
      --list [pattern]           List paths contained in the backups, optionally
                                 matching an SQLite LIKE pattern
@@ -62,6 +63,10 @@ It can be used to build your own restoration script.
 - **--debug**
 
     Enable debug messages.
+
+- **--quiet**
+
+    Reduce output by showing only show warnings and above (errors).
 
 - **--update-cache**, **-u**
 

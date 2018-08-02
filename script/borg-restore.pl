@@ -13,6 +13,7 @@ borg-restore.pl [options] <path>
  Options:
   --help, -h                 short help message
   --debug                    show debug messages
+  --quiet                    show only warnings and errors
   --update-cache, -u         update cache files
   --list [pattern]           List paths contained in the backups, optionally
                              matching an SQLite LIKE pattern
@@ -70,6 +71,10 @@ Show help message.
 =item B<--debug>
 
 Enable debug messages.
+
+=item B<--quiet>
+
+Reduce output by showing only show warnings and above (errors).
 
 =item B<--update-cache>, B<-u>
 
@@ -219,7 +224,7 @@ sub main {
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
-	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list") or pod2usage(2);
+	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list", "quiet") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
 	if ($opts{version}) {
@@ -228,6 +233,11 @@ sub main {
 	}
 
 	pod2usage(-verbose => 0) if (@ARGV== 0 and !$opts{"update-cache"} and !$opts{"list"});
+
+	if ($opts{quiet}) {
+		my $logger = Log::Log4perl->get_logger('');
+		$logger->level($WARN);
+	}
 
 	if ($opts{debug}) {
 		my $logger = Log::Log4perl->get_logger('');
