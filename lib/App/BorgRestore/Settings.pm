@@ -75,9 +75,9 @@ If you create a backup of /home/user only, you will need to use the following:
 
 Default: 102400
 
-The size of the in-memory cache of sqlite in kibibytes. This should be large
-enough to fit the database so that adding new backup data does not need to use
-the disk too much.
+The size of the in-memory cache of sqlite in kibibytes. Increasing this may
+reduce disk IO and improve performance on certain systems when updating the
+cache.
 
 =back
 

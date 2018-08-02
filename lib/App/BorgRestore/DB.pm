@@ -175,8 +175,8 @@ method verify_cache_fill_rate_ok() {
 	my $used = $self->{dbh}->sqlite_db_status()->{cache_used}->{current};
 	$log->debugf("sqlite page cache usage: %s", format_bytes($used, si=>1));
 	if ($used > $self->{cache_size} * 1024 * 0.95) {
-		$log->warnf("sqlite cache usage is %s of %s", format_bytes($used, si=>1), format_bytes($self->{cache_size} * 1024, si => 1));
-		$log->warn("Consider increasing the sqlite cache (see documentation of App::BorgRestore::Settings)");
+		$log->debugf("sqlite cache usage is %s of %s", format_bytes($used, si=>1), format_bytes($self->{cache_size} * 1024, si => 1));
+		$log->debug("Consider increasing the sqlite cache if you notice performance issues (see documentation of App::BorgRestore::Settings)");
 	}
 }
 
