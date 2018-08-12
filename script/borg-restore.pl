@@ -16,6 +16,8 @@ borg-restore.pl [options] <path>
   --quiet                    show only warnings and errors
   --detail                   Output additional detail for some operations
                              (currently only --list)
+  --json                     Output JSON instead of human readable text
+                             (currently only --list)
   --update-cache, -u         update cache files
   --list [pattern]           List paths contained in the backups, optionally
                              matching an SQLite LIKE pattern
@@ -83,6 +85,11 @@ Reduce output by showing only show warnings and above (errors).
 Output additional detail information with some operations. Refer to the
 specific options for more information. Currently only works with B<--list>
 
+=item B<--json>
+
+Output JSON instead of human readable text with some operations. Refer to the
+specific options for more information. Currently only works with B<--list>
+
 =item B<--update-cache>, B<-u>
 
 Update the lookup database. You should run this after creating or removing a backup.
@@ -96,6 +103,8 @@ between two % so it may match anywhere in the path.
 If B<--detail> is used, also outputs which archives contain a version of the
 file. If the same version is part of multiple archives, only one archive is
 shown.
+
+If B<--json> is used, the output is JSON. Can also be combined with B<--detail>.
 
 =item B<--destination=>I<path>, B<-d >I<path>
 
@@ -162,6 +171,7 @@ use Cwd qw(abs_path);
 use File::Basename;
 use Function::Parameters;
 use Getopt::Long;
+use JSON;
 use Log::Any qw($log);
 use Log::Any::Adapter;
 use Log::Log4perl;
@@ -241,7 +251,7 @@ sub main {
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
-	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list", "quiet", "detail") or pod2usage(2);
+	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list", "quiet", "detail", "json") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
 	if ($opts{version}) {
@@ -274,15 +284,30 @@ sub main {
 		my @patterns = @ARGV;
 		push @patterns, '', if @patterns == 0;
 
+		my $json_data = {};
+
 		for my $pattern (@patterns) {
 			$pattern = App::BorgRestore::Helper::untaint($pattern, qr/.*/);
 
 			my $paths = $app->search_path($pattern);
 			for my $path (@$paths) {
-				printf "%s\n", $path;
-				print_archive_list($app->find_archives($path), 0) if $opts{detail};
+				my $archives; $archives = $app->find_archives($path) if $opts{detail};
+				if ($opts{json}) {
+					$json_data->{$path} = {
+						path => $path,
+						archives => $archives,
+					} unless defined $json_data->{$path};
+				} else {
+					printf "%s\n", $path;
+					print_archive_list($archives, 0) if defined $archives;
+				}
 			}
 		}
+
+		if ($opts{json}) {
+			print encode_json($json_data);
+		}
+
 		return 0;
 	}
 

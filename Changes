@@ -1,6 +1,7 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- Add --json option
 	- Add --detail option
 	- Log cache update status message per archive to INFO
 	- Add --quiet option
