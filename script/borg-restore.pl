@@ -14,6 +14,8 @@ borg-restore.pl [options] <path>
   --help, -h                 short help message
   --debug                    show debug messages
   --quiet                    show only warnings and errors
+  --detail                   Output additional detail for some operations
+                             (currently only --list)
   --update-cache, -u         update cache files
   --list [pattern]           List paths contained in the backups, optionally
                              matching an SQLite LIKE pattern
@@ -76,6 +78,11 @@ Enable debug messages.
 
 Reduce output by showing only show warnings and above (errors).
 
+=item B<--detail>
+
+Output additional detail information with some operations. Refer to the
+specific options for more information. Currently only works with B<--list>
+
 =item B<--update-cache>, B<-u>
 
 Update the lookup database. You should run this after creating or removing a backup.
@@ -85,6 +92,10 @@ Update the lookup database. You should run this after creating or removing a bac
 List paths contained in the backups, optionally matching an SQLite LIKE
 pattern. If no % occurs in the pattern, the patterns is automatically wrapped
 between two % so it may match anywhere in the path.
+
+If B<--detail> is used, also outputs which archives contain a version of the
+file. If the same version is part of multiple archives, only one archive is
+shown.
 
 =item B<--destination=>I<path>, B<-d >I<path>
 
@@ -162,6 +173,15 @@ use Pod::Usage;
 
 my $app;
 
+fun print_archive_list ($archives, $show_counter=1) {
+	my $counter = 0;
+	for my $archive (@$archives) {
+		$counter++;
+		printf "\e[0;33m%3d: ", $counter if $show_counter;
+		printf "\e[1;33m%s\e[0m %s\n", App::BorgRestore::Helper::format_timestamp($archive->{modification_time}), $archive->{archive};
+	}
+}
+
 fun user_select_archive ($archives) {
 	my $selected_archive;
 
@@ -169,10 +189,7 @@ fun user_select_archive ($archives) {
 		return;
 	}
 
-	my $counter = 0;
-	for my $archive (@$archives) {
-		printf "\e[0;33m%3d: \e[1;33m%s\e[0m %s\n", $counter++, App::BorgRestore::Helper::format_timestamp($archive->{modification_time}), $archive->{archive};
-	}
+	print_archive_list($archives);
 
 	printf "\e[0;34m%s: \e[0m", "Enter ID to restore (Enter to skip)";
 	my $selection = <STDIN>;
@@ -224,7 +241,7 @@ sub main {
 	$ENV{PATH} = App::BorgRestore::Helper::untaint($ENV{PATH}, qr(.*));
 
 	Getopt::Long::Configure ("bundling");
-	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list", "quiet") or pod2usage(2);
+	GetOptions(\%opts, "help|h", "debug", "update-cache|u", "destination|d=s", "time|t=s", "adhoc", "version", "list", "quiet", "detail") or pod2usage(2);
 	pod2usage(0) if $opts{help};
 
 	if ($opts{version}) {
@@ -263,6 +280,7 @@ sub main {
 			my $paths = $app->search_path($pattern);
 			for my $path (@$paths) {
 				printf "%s\n", $path;
+				print_archive_list($app->find_archives($path), 0) if $opts{detail};
 			}
 		}
 		return 0;
