@@ -28,7 +28,10 @@ method new($class: $db_path, $cache_size) {
 	my $self = {};
 	bless $self, $class;
 
-	if (! -f $db_path) {
+	if ($db_path =~ /^:/) {
+		$self->_open_db($db_path);
+		$self->initialize_db();
+	} elsif (! -f $db_path) {
 		# ensure the cache directory exists
 		path($db_path)->parent->mkpath({mode => oct(700)});
 
