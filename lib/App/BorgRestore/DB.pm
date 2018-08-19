@@ -35,7 +35,7 @@ method new($class: $db_path, $cache_size) {
 		# ensure the cache directory exists
 		path($db_path)->parent->mkpath({mode => oct(700)});
 
-		my $db = $self->_open_db($db_path);
+		$self->_open_db($db_path);
 		$self->initialize_db();
 	} else {
 		$self->_open_db($db_path);
