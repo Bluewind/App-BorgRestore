@@ -69,6 +69,7 @@
       },
       "test" : {
          "requires" : {
+            "Log::Any::Adapter::TAP" : "0",
             "Software::License::GPL_3" : "0",
             "Test::Differences" : "0",
             "Test::Exception" : "0",

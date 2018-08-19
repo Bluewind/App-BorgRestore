@@ -27,6 +27,7 @@ on configure => sub {
 };
 
 on 'test' => sub {
+	requires 'Log::Any::Adapter::TAP';
 	requires 'Test::Differences';
 	requires 'Test::Exception';
 	requires 'Test::MockObject';
