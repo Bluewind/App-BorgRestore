@@ -46,5 +46,6 @@ eq_or_diff($app->find_archives('test/path'), [
 	]);
 
 dies_ok {$app->find_archives('test/nope')};
+is ($@, "Path 'test/nope' not found in any archive.\n");
 
 done_testing;
