@@ -186,9 +186,9 @@ my $app;
 fun print_archive_list ($archives, $show_counter=1) {
 	my $counter = 0;
 	for my $archive (@$archives) {
-		$counter++;
 		printf "\e[0;33m%3d: ", $counter if $show_counter;
 		printf "\e[1;33m%s\e[0m %s\n", App::BorgRestore::Helper::format_timestamp($archive->{modification_time}), $archive->{archive};
+		$counter++;
 	}
 }
 
