@@ -35,12 +35,14 @@ for my $in_memory (0,1) {
 	$app->_handle_added_archives(['archive-1']);
 
 	# check database content
+	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-1', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-1', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-1', modification_time => 19},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo/bar'), [{archive => 'archive-1', modification_time => 19},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), [{archive => 'archive-1', modification_time => 13},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub'), [{archive => 'archive-1', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [{archive => 'archive-1', modification_time => 8},]);
+	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-1', modification_time => undef},]);
 }
 
 
