@@ -110,7 +110,7 @@ out-of-memory problem try setting this to 0.
 
 =head1 LICENSE
 
-Copyright (C) 2016-2017  Florian Pritz E<lt>bluewind@xinu.atE<gt>
+Copyright (C) 2016-2018  Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
 Licensed under the GNU General Public License version 3 or later.
 See LICENSE for the full license text.

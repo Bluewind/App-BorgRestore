@@ -512,7 +512,7 @@ __END__
 
 =head1 LICENSE
 
-Copyright (C) 2016-2017  Florian Pritz E<lt>bluewind@xinu.atE<gt>
+Copyright (C) 2016-2018  Florian Pritz E<lt>bluewind@xinu.atE<gt>
 
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
