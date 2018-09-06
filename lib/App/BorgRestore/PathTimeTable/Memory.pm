@@ -5,6 +5,17 @@ use warnings;
 
 use Function::Parameters;
 
+=head1 NAME
+
+App::BorgRestore::PathTimeTable::Memory - In-Memory preparation of new archive data
+
+=head1 DESCRIPTION
+
+This is used by L<App::BorgRestore> to add new archive data into the database.
+Data is prepared in memory first and only written to the database once.
+
+=cut
+
 method new($class: $deps = {}) {
 	return $class->new_no_defaults($deps);
 }
@@ -17,6 +28,10 @@ method new_no_defaults($class: $deps = {}) {
 	$self->{nodes_to_flatten} = [];
 	$self->{nodes} = [];
 	return $self;
+}
+
+method set_archive_id($archive_id) {
+	$self->{archive_id} = $archive_id;
 }
 
 method add_path($path, $time) {
@@ -45,8 +60,8 @@ method add_path($path, $time) {
 	}
 }
 
-method save_nodes($archive_id) {
-	$self->_save_node($archive_id, undef, $self->{lookuptable});
+method save_nodes() {
+	$self->_save_node($self->{archive_id}, undef, $self->{lookuptable});
 }
 
 method _save_node($archive_id, $prefix, $node) {

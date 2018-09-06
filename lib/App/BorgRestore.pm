@@ -8,6 +8,7 @@ our $VERSION = "3.1.0";
 use App::BorgRestore::Borg;
 use App::BorgRestore::DB;
 use App::BorgRestore::Helper;
+use App::BorgRestore::PathTimeTable::DB;
 use App::BorgRestore::PathTimeTable::Memory;
 use App::BorgRestore::Settings;
 
@@ -442,9 +443,15 @@ method _handle_added_archives($borg_archives) {
 
 	for my $archive (@$add_archives) {
 		my $start = Time::HiRes::gettimeofday();
-		my $lookuptable = App::BorgRestore::PathTimeTable::Memory->new({db => $self->{db}});
+		my $lookuptable_class = $App::BorgRestore::Settings::prepare_data_in_memory == 1 ? "Memory" : "DB";
+		$log->debugf("Using '%s' class for PathTimeTable", $lookuptable_class);
+		my $lookuptable = "App::BorgRestore::PathTimeTable::$lookuptable_class"->new({db => $self->{db}});
 
 		$log->infof("Adding archive %s", $archive);
+		$self->{db}->begin_work;
+		$self->{db}->add_archive_name($archive);
+		my $archive_id = $self->{db}->get_archive_id($archive);
+		$lookuptable->set_archive_id($archive_id);
 
 		$self->{borg}->list_archive($archive, sub {
 			my $line = shift;
@@ -461,10 +468,7 @@ method _handle_added_archives($borg_archives) {
 
 		my $borg_time = Time::HiRes::gettimeofday;
 
-		$self->{db}->begin_work;
-		$self->{db}->add_archive_name($archive);
-		my $archive_id = $self->{db}->get_archive_id($archive);
-		$lookuptable->save_nodes($archive_id);
+		$lookuptable->save_nodes();
 		$self->{db}->commit;
 		$self->{db}->vacuum;
 		$self->{db}->verify_cache_fill_rate_ok();
