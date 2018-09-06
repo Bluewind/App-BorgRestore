@@ -8,6 +8,7 @@ our $VERSION = "3.1.0";
 use App::BorgRestore::Borg;
 use App::BorgRestore::DB;
 use App::BorgRestore::Helper;
+use App::BorgRestore::PathTimeTable::Memory;
 use App::BorgRestore::Settings;
 
 use autodie;
@@ -376,32 +377,6 @@ method restore_simple($path, $timespec, $destination) {
 	$self->restore($backup_path, $selected_archive, $destination);
 }
 
-method _add_path_to_hash($hash, $path, $time) {
-	my @components = split /\//, $path;
-
-	my $node = $hash;
-
-	if ($path eq ".") {
-		if ($time > $$node[1]) {
-			$$node[1] = $time;
-		}
-		return;
-	}
-
-	# each node is an arrayref of the format [$hashref_of_children, $mtime]
-	# $hashref_of_children is undef if there are no children
-	for my $component (@components) {
-		if (!defined($$node[0]->{$component})) {
-			$$node[0]->{$component} = [undef, $time];
-		}
-		# update mtime per child
-		if ($time > $$node[1]) {
-			$$node[1] = $time;
-		}
-		$node = $$node[0]->{$component};
-	}
-}
-
 =head3 search_path
 
  my $paths = $app->search_path($pattern)
@@ -467,7 +442,7 @@ method _handle_added_archives($borg_archives) {
 
 	for my $archive (@$add_archives) {
 		my $start = Time::HiRes::gettimeofday();
-		my $lookuptable = [{}, 0];
+		my $lookuptable = App::BorgRestore::PathTimeTable::Memory->new({db => $self->{db}});
 
 		$log->infof("Adding archive %s", $archive);
 
@@ -480,7 +455,7 @@ method _handle_added_archives($borg_archives) {
 			if ($line =~ m/^.{4} (?<year>....)-(?<month>..)-(?<day>..) (?<hour>..):(?<minute>..):(?<second>..) (?<path>.+)$/) {
 				my $time = POSIX::mktime($+{second},$+{minute},$+{hour},$+{day},$+{month}-1,$+{year}-1900);
 				#$log->debugf("Adding path %s with time %s", $+{path}, $time);
-				$self->_add_path_to_hash($lookuptable, $+{path}, $time);
+				$lookuptable->add_path($+{path}, $time);
 			}
 		});
 
@@ -489,7 +464,7 @@ method _handle_added_archives($borg_archives) {
 		$self->{db}->begin_work;
 		$self->{db}->add_archive_name($archive);
 		my $archive_id = $self->{db}->get_archive_id($archive);
-		$self->_save_node($archive_id,  undef, $lookuptable);
+		$lookuptable->save_nodes($archive_id);
 		$self->{db}->commit;
 		$self->{db}->vacuum;
 		$self->{db}->verify_cache_fill_rate_ok();
@@ -498,20 +473,6 @@ method _handle_added_archives($borg_archives) {
 		$log->debugf("Adding archive finished after: %.5fs (parsing borg output took %.5fs)", $end - $start, $borg_time - $start);
 	}
 }
-
-method _save_node($archive_id, $prefix, $node) {
-	for my $child (keys %{$$node[0]}) {
-		my $path;
-		$path = $prefix."/" if defined($prefix);
-		$path .= $child;
-
-		my $time = $$node[0]->{$child}[1];
-		$self->{db}->add_path($archive_id, $path, $time);
-
-		$self->_save_node($archive_id, $path, $$node[0]->{$child});
-	}
-}
-
 
 =head3 update_cache
 
