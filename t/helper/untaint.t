@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use Log::Any::Adapter ('TAP');
 use Test::More;
 use Test::Exception;
 

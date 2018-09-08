@@ -1,6 +1,7 @@
 use strict;
 use warnings;
 
+use Log::Any::Adapter ('TAP');
 use POSIX qw(tzset);
 use Test::Differences;
 use Test::MockObject;
