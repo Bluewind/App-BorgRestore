@@ -153,6 +153,21 @@ method new_no_defaults($class: $deps = {}) {
 	return $self;
 }
 
+method get_config() {
+	return {
+		borg => {
+			repo => $borg_repo,
+			path_prefixes => [@backup_prefixes],
+		},
+		cache => {
+			base_path => $cache_path_base,
+			database_path => "$cache_path_base/v3/archives.db",
+			prepare_data_in_memory => $prepare_data_in_memory,
+			sqlite_memory_cache_size => $sqlite_cache_size,
+		}
+	};
+}
+
 fun load_config_files() {
 	my @configfiles;
 
@@ -173,22 +188,9 @@ fun load_config_files() {
 	}
 }
 
-fun get_cache_base_dir_path($path) {
+method get_cache_base_dir_path($path) {
 	return "$cache_path_base/$path";
 }
-
-fun get_cache_dir() {
-	return "$cache_path_base/v3";
-}
-
-fun get_cache_path($item) {
-	return get_cache_dir()."/$item";
-}
-
-fun get_db_path() {
-	return get_cache_path('archives.db');
-}
-
 
 1;
 

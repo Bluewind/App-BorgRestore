@@ -92,13 +92,12 @@ L<App::BorgRestore::DB>
 method new($class: $deps = {}) {
 	$deps->{settings} //= App::BorgRestore::Settings->new();
 
-	my $db_path = App::BorgRestore::Settings::get_db_path();
-	my $cache_size = $App::BorgRestore::Settings::sqlite_cache_size;
+	my $config = $deps->{settings}->get_config();
 
-	$deps->{borg} //= App::BorgRestore::Borg->new($App::BorgRestore::Settings::borg_repo);
-	$deps->{db} //= App::BorgRestore::DB->new($db_path, $cache_size);
+	$deps->{borg} //= App::BorgRestore::Borg->new($config->{borg}->{repo});
+	$deps->{db} //= App::BorgRestore::DB->new($config->{cache}->{database_path}, $config->{cache}->{sqlite_memory_cache_size});
 
-	return $class->new_no_defaults($deps);
+	return $class->new_no_defaults($deps, $config);
 }
 
 =head3 new_no_defaults
@@ -108,11 +107,12 @@ their default values. This is probably only useful for tests.
 
 =cut
 
-method new_no_defaults($class: $deps) {
+method new_no_defaults($class: $deps, $config = {}) {
 	my $self = {};
 	bless $self, $class;
 
 	$self->{deps} = $deps;
+	$self->{config} = $config;
 
 	return $self;
 }
@@ -155,7 +155,7 @@ Returns the mapped path (string).
 method map_path_to_backup_path($abs_path) {
 	my $backup_path = $abs_path;
 
-	for my $backup_prefix (@App::BorgRestore::Settings::backup_prefixes) {
+	for my $backup_prefix (@{$self->{config}->{borg}->{path_prefixes}}) {
 		if ($backup_path =~ m/$backup_prefix->{regex}/) {
 			$backup_path =~ s/$backup_prefix->{regex}/$backup_prefix->{replacement}/;
 			last;
@@ -441,7 +441,7 @@ method _handle_added_archives($borg_archives) {
 
 	for my $archive (@$add_archives) {
 		my $start = Time::HiRes::gettimeofday();
-		my $lookuptable_class = $App::BorgRestore::Settings::prepare_data_in_memory == 1 ? "Memory" : "DB";
+		my $lookuptable_class = $self->{config}->{cache}->{prepare_data_in_memory} == 1 ? "Memory" : "DB";
 		$log->debugf("Using '%s' class for PathTimeTable", $lookuptable_class);
 		my $lookuptable = "App::BorgRestore::PathTimeTable::$lookuptable_class"->new({db => $self->{deps}->{db}});
 
@@ -485,7 +485,7 @@ Updates the database used by e.g. C<find_archives>.
 =cut
 
 method update_cache() {
-	my $v2_basedir = App::BorgRestore::Settings::get_cache_base_dir_path("v2");
+	my $v2_basedir = $self->{deps}->{settings}->get_cache_base_dir_path("v2");
 	if (-e $v2_basedir) {
 		$log->info("Removing old v2 cache directory: $v2_basedir");
 		path($v2_basedir)->remove_tree;
