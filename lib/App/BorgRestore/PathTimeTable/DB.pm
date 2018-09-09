@@ -43,15 +43,19 @@ method set_archive_id($archive_id) {
 method add_path($path, $time) {
 	$self->{stats}->{total_paths}++;
 	my $old_cache_path = $self->{current_path_in_cache};
-	while ($old_cache_path =~ m#/#) {
-		unless ($path =~ m#^\Q$old_cache_path\E/#) {
-			delete $self->{cache}->{$old_cache_path};
+	while ((my $slash_index = rindex($old_cache_path, "/")) != -1) {
+		$self->{stats}->{cache_invalidation_loop_iterations}++;
+		if ($old_cache_path eq substr($path, 0, length($old_cache_path))) {
+			# keep the cache content for the part of the path that stays the same
+			last;
 		}
-		$old_cache_path =~ s|/[^/]*$||;
+		delete $self->{cache}->{$old_cache_path};
+		# strip last part of path
+		$old_cache_path = substr($old_cache_path, 0, $slash_index);
 	}
 
 	my $full_path = $path;
-	while ($path =~ m#/#) {
+	while ((my $slash_index = rindex($path, "/")) != -1) {
 		$self->_add_path_to_db($self->{archive_id}, $path, $time);
 		my $cached = $self->{cache}->{$path};
 		if ($path ne $full_path && (!defined $cached || $cached < $time)) {
@@ -60,7 +64,7 @@ method add_path($path, $time) {
 			#$log->tracef("Setting cache time for path '%s' to %d", $path, $time);
 			$self->{cache}->{$path} = $time;
 		}
-		$path =~ s|/[^/]*$||;
+		$path = substr($path, 0, $slash_index);
 	}
 	$self->_add_path_to_db($self->{archive_id}, $path, $time) unless $path eq ".";
 	my $cached = $self->{cache}->{$path};
