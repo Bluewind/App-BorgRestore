@@ -90,16 +90,13 @@ L<App::BorgRestore::DB>
 =cut
 
 method new($class: $deps = {}) {
-	my $self = {};
-	bless $self, $class;
-
 	my $db_path = App::BorgRestore::Settings::get_db_path();
 	my $cache_size = $App::BorgRestore::Settings::sqlite_cache_size;
 
-	$self->{deps}->{borg} = $deps->{borg} // App::BorgRestore::Borg->new($App::BorgRestore::Settings::borg_repo);
-	$self->{deps}->{db} = $deps->{db} // App::BorgRestore::DB->new($db_path, $cache_size);
+	$deps->{borg} //= App::BorgRestore::Borg->new($App::BorgRestore::Settings::borg_repo);
+	$deps->{db} //= App::BorgRestore::DB->new($db_path, $cache_size);
 
-	return $self;
+	return $class->new_no_defaults($deps);
 }
 
 =head3 new_no_defaults
@@ -113,8 +110,7 @@ method new_no_defaults($class: $deps) {
 	my $self = {};
 	bless $self, $class;
 
-	$self->{deps}->{borg} = $deps->{borg};
-	$self->{deps}->{db} = $deps->{db};
+	$self->{deps} = $deps;
 
 	return $self;
 }
