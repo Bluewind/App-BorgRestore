@@ -90,6 +90,8 @@ L<App::BorgRestore::DB>
 =cut
 
 method new($class: $deps = {}) {
+	$deps->{settings} //= App::BorgRestore::Settings->new();
+
 	my $db_path = App::BorgRestore::Settings::get_db_path();
 	my $cache_size = $App::BorgRestore::Settings::sqlite_cache_size;
 

@@ -118,6 +118,10 @@ See LICENSE for the full license text.
 
 =cut
 
+method new($class: $deps = {}) {
+	return $class->new_no_defaults($deps);
+}
+
 our $borg_repo = "backup:borg-".hostname;
 our $cache_path_base;
 our @backup_prefixes = (
@@ -126,8 +130,27 @@ our @backup_prefixes = (
 our $sqlite_cache_size = 102400;
 our $prepare_data_in_memory = 1;
 
-if (defined $ENV{XDG_CACHE_HOME} or defined $ENV{HOME}) {
-	$cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME} ."/.cache");
+method new_no_defaults($class: $deps = {}) {
+	my $self = {};
+	bless $self, $class;
+	$self->{deps} = $deps;
+
+
+	if (defined $ENV{XDG_CACHE_HOME} or defined $ENV{HOME}) {
+		$cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME} ."/.cache");
+	}
+
+	load_config_files();
+
+	if (not defined $cache_path_base) {
+		die "Error: \$cache_path_base is not defined. This is most likely because the\n"
+		."environment variables \$HOME and \$XDG_CACHE_HOME are not set. Consider setting\n"
+		."the path in the config file or ensure that the variables are set.";
+	}
+
+	$cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
+
+	return $self;
 }
 
 fun load_config_files() {
@@ -149,16 +172,6 @@ fun load_config_files() {
 		}
 	}
 }
-
-load_config_files();
-
-if (not defined $cache_path_base) {
-	die "Error: \$cache_path_base is not defined. This is most likely because the\n"
-	."environment variables \$HOME and \$XDG_CACHE_HOME are not set. Consider setting\n"
-	."the path in the config file or ensure that the variables are set.";
-}
-
-$cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
 
 fun get_cache_base_dir_path($path) {
 	return "$cache_path_base/$path";
