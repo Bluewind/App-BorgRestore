@@ -125,27 +125,32 @@ our @backup_prefixes = (
 );
 our $sqlite_cache_size = 102400;
 our $prepare_data_in_memory = 1;
-my @configfiles;
-
-if (defined $ENV{XDG_CONFIG_HOME} or defined $ENV{HOME}) {
-	push @configfiles, sprintf("%s/borg-restore.cfg", $ENV{XDG_CONFIG_HOME} // $ENV{HOME}."/.config");
-}
-push @configfiles, "/etc/borg-restore.cfg";
 
 if (defined $ENV{XDG_CACHE_HOME} or defined $ENV{HOME}) {
 	$cache_path_base = sprintf("%s/borg-restore.pl", $ENV{XDG_CACHE_HOME} // $ENV{HOME} ."/.cache");
 }
 
-for my $configfile (@configfiles) {
-	$configfile = App::BorgRestore::Helper::untaint($configfile, qr/.*/);
-	if (-e $configfile) {
-		unless (my $return = do $configfile) {
-			die "couldn't parse $configfile: $@" if $@;
-			die "couldn't do $configfile: $!"    unless defined $return;
-			die "couldn't run $configfile"       unless $return;
+fun load_config_files() {
+	my @configfiles;
+
+	if (defined $ENV{XDG_CONFIG_HOME} or defined $ENV{HOME}) {
+		push @configfiles, sprintf("%s/borg-restore.cfg", $ENV{XDG_CONFIG_HOME} // $ENV{HOME}."/.config");
+	}
+	push @configfiles, "/etc/borg-restore.cfg";
+
+	for my $configfile (@configfiles) {
+		$configfile = App::BorgRestore::Helper::untaint($configfile, qr/.*/);
+		if (-e $configfile) {
+			unless (my $return = do $configfile) {
+				die "couldn't parse $configfile: $@" if $@;
+				die "couldn't do $configfile: $!"    unless defined $return;
+				die "couldn't run $configfile"       unless $return;
+			}
 		}
 	}
 }
+
+load_config_files();
 
 if (not defined $cache_path_base) {
 	die "Error: \$cache_path_base is not defined. This is most likely because the\n"
