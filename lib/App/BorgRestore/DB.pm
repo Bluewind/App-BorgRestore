@@ -171,7 +171,7 @@ method add_path($archive_id, $path, $time) {
 method update_path_if_greater($archive_id, $path, $time) {
 	$self->_insert_path($archive_id, $path, $time);
 
-	my $st = $self->{dbh}->prepare_cached('update files set `'.$archive_id.'` = ? where `path` = ? and `'.$archive_id.'` < ?');
+	my $st = $self->{dbh}->prepare_cached('update files set `'.$archive_id.'` = ? where `path` = ? and (`'.$archive_id.'` < ? or `'.$archive_id.'` is null)');
 	$st->execute($time, $path, $time);
 }
 
