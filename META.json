@@ -64,7 +64,8 @@
             "Pod::Usage" : "0",
             "Version::Compare" : "0",
             "autodie" : "0",
-            "perl" : "v5.14.0"
+            "perl" : "v5.14.0",
+            "strictures" : "0"
          }
       },
       "test" : {
