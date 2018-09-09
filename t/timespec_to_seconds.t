@@ -1,5 +1,4 @@
-use strict;
-use warnings;
+use strictures 2;
 
 use Log::Any::Adapter ('TAP');
 use Test::More;

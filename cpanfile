@@ -20,6 +20,7 @@ requires 'Pod::Usage';
 requires 'Version::Compare';
 requires 'autodie';
 requires 'perl', 'v5.14.0';
+requires 'strictures';
 
 on configure => sub {
 	requires 'Devel::CheckBin';

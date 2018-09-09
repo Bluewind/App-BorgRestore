@@ -1,6 +1,5 @@
 package App::BorgRestore::PathTimeTable::DB;
-use strict;
-use warnings;
+use strictures 2;
 
 use Function::Parameters;
 use Log::Any qw($log);
