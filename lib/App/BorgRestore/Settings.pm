@@ -6,6 +6,7 @@ use warnings;
 use App::BorgRestore::Helper;
 
 use autodie;
+use Function::Parameters;
 use Sys::Hostname;
 
 =encoding utf-8
@@ -154,21 +155,19 @@ if (not defined $cache_path_base) {
 
 $cache_path_base = App::BorgRestore::Helper::untaint($cache_path_base, qr/.*/);
 
-sub get_cache_base_dir_path {
-	my $path = shift;
+fun get_cache_base_dir_path($path) {
 	return "$cache_path_base/$path";
 }
 
-sub get_cache_dir {
+fun get_cache_dir() {
 	return "$cache_path_base/v3";
 }
 
-sub get_cache_path {
-	my $item = shift;
+fun get_cache_path($item) {
 	return get_cache_dir()."/$item";
 }
 
-sub get_db_path {
+fun get_db_path() {
 	return get_cache_path('archives.db');
 }
 
