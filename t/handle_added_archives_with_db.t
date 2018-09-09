@@ -10,8 +10,6 @@ use App::BorgRestore;
 use App::BorgRestore::Settings;
 
 for my $in_memory (0,1) {
-	$App::BorgRestore::Settings::prepare_data_in_memory = $in_memory;
-
 	my $db = App::BorgRestore::DB->new(":memory:", 0);
 
 	$ENV{TZ} = 'UTC';
@@ -31,7 +29,7 @@ for my $in_memory (0,1) {
 		} );
 
 	# Call the actual function we want to test
-	my $app = App::BorgRestore->new({borg => $borg, db => $db});
+	my $app = App::BorgRestore->new_no_defaults({borg => $borg, db => $db}, {cache => {prepare_data_in_memory => $in_memory}});
 	$app->_handle_added_archives(['archive-1']);
 
 	# check database content
