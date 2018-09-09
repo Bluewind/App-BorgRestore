@@ -22,6 +22,10 @@ directory is added, the previous cache is invalidated.
 
 =cut
 
+# Trace logging statements are disabled here since they incur a performance
+# overhead because they are in tight loops. Change to 1 when necessary.
+use constant TRACE => 0;
+
 method new($class: $deps = {}) {
 	return $class->new_no_defaults($deps);
 }
@@ -59,9 +63,7 @@ method add_path($path, $time) {
 		$self->_add_path_to_db($self->{archive_id}, $path, $time);
 		my $cached = $self->{cache}->{$path};
 		if ($path ne $full_path && (!defined $cached || $cached < $time)) {
-			# logging statements are commented since they incur a performance
-			# overhead because they are called very often. Uncomment when necessary
-			#$log->tracef("Setting cache time for path '%s' to %d", $path, $time);
+			$log->tracef("Setting cache time for path '%s' to %d", $path, $time) if TRACE;
 			$self->{cache}->{$path} = $time;
 		}
 		$path = substr($path, 0, $slash_index);
@@ -69,7 +71,7 @@ method add_path($path, $time) {
 	$self->_add_path_to_db($self->{archive_id}, $path, $time) unless $path eq ".";
 	my $cached = $self->{cache}->{$path};
 	if ($path ne $full_path && (!defined $cached || $cached < $time)) {
-		#$log->tracef("Setting cache time for path '%s' to %d", $path, $time);
+		$log->tracef("Setting cache time for path '%s' to %d", $path, $time) if TRACE;
 		$self->{cache}->{$path} = $time;
 	}
 	$self->{current_path_in_cache} = $full_path;
@@ -79,11 +81,11 @@ method _add_path_to_db($archive_id, $path,$time) {
 	my $cached = $self->{cache}->{$path};
 	$self->{stats}->{total_potential_calls_to_db_class}++;
 	if (!defined $cached || $cached < $time) {
-		#$log->tracef("Updating DB for path '%s' with time %d", $path, $time);
+		$log->tracef("Updating DB for path '%s' with time %d", $path, $time) if TRACE;
 		$self->{stats}->{real_calls_to_db_class}++;
 		$self->{deps}->{db}->update_path_if_greater($archive_id, $path, $time);
 	} else {
-		#$log->tracef("Skipping DB update for path '%s' because (cached) DB time is %d and file time is %d which is lower", $path, $cached, $time);
+		$log->tracef("Skipping DB update for path '%s' because (cached) DB time is %d and file time is %d which is lower", $path, $cached, $time) if TRACE;
 	}
 }
 
