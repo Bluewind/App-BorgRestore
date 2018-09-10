@@ -88,7 +88,6 @@ method _add_path_to_db($archive_id, $path,$time) {
 method save_nodes() {
 	# flush remaining paths to the DB
 	my $old_cache_path = $self->{current_path_in_cache};
-	$log->debugf("cache content %s", $old_cache_path);
 	while ((my $slash_index = rindex($old_cache_path, "/")) != -1) {
 		$self->{stats}->{cache_invalidation_loop_iterations}++;
 		my $removed_time = delete $self->{cache}->{$old_cache_path};
