@@ -57,16 +57,13 @@ method add_path($path, $time) {
 		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $removed_time);
 		# strip last part of path
 		$old_cache_path = substr($old_cache_path, 0, $slash_index);
-	}
 
-	my $full_path = $path;
-	while ((my $slash_index = rindex($path, "/")) != -1) {
-		my $cached = $self->{cache}->{$path};
-		if (!defined $cached || $cached < $time) {
-			$log->tracef("Setting cache time for path '%s' to %d", $path, $time) if TRACE;
-			$self->{cache}->{$path} = $time;
+		# update parent timestamp
+		my $cached = $self->{cache}->{$old_cache_path};
+		if (!defined $cached || $cached < $removed_time) {
+			$log->tracef("Setting cache time for path '%s' to %d", $old_cache_path, $removed_time) if TRACE;
+			$self->{cache}->{$old_cache_path} = $removed_time;
 		}
-		$path = substr($path, 0, $slash_index);
 	}
 
 	if ($old_cache_path ne substr($path, 0, length($old_cache_path))) {
@@ -79,7 +76,7 @@ method add_path($path, $time) {
 		$log->tracef("Setting cache time for path '%s' to %d", $path, $time) if TRACE;
 		$self->{cache}->{$path} = $time;
 	}
-	$self->{current_path_in_cache} = $full_path;
+	$self->{current_path_in_cache} = $path;
 }
 
 method _add_path_to_db($archive_id, $path,$time) {
@@ -100,6 +97,13 @@ method save_nodes() {
 		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $removed_time);
 		# strip last part of path
 		$old_cache_path = substr($old_cache_path, 0, $slash_index);
+
+		# update parent timestamp
+		my $cached = $self->{cache}->{$old_cache_path};
+		if (!defined $cached || $cached < $removed_time) {
+			$log->tracef("Setting cache time for path '%s' to %d", $old_cache_path, $removed_time) if TRACE;
+			$self->{cache}->{$old_cache_path} = $removed_time;
+		}
 	}
 	# ensure that top level directory is also written
 	$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path});
