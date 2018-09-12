@@ -31,6 +31,9 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:04 boot/test1/f2");
 			$cb->("XXX, 1970-01-01 00:00:03 boot/test1/f3");
 			$cb->("XXX, 1970-01-01 00:00:02 boot/test1/f4");
+			$cb->("XXX, 1970-01-01 00:00:03 etc");
+			$cb->("XXX, 1970-01-01 00:00:02 etc/foo");
+			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/bar");
 		} );
 
 	# Call the actual function we want to test
@@ -50,6 +53,9 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-1', modification_time => 4},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), [{archive => 'archive-1', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), [{archive => 'archive-1', modification_time => 2},]);
+	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-1', modification_time => 3},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-1', modification_time => 2},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-1', modification_time => 1},]);
 	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-1', modification_time => undef},]);
 
 
@@ -70,6 +76,9 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:03 boot/test1/f3");
 			$cb->("XXX, 1970-01-01 00:00:02 boot/test1/f4");
 			$cb->("XXX, 1970-01-01 00:00:07 boot/test1/f5");
+			$cb->("XXX, 1970-01-01 00:00:03 etc");
+			$cb->("XXX, 1970-01-01 00:00:02 etc/foo");
+			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/bar");
 		} );
 	$app->_handle_added_archives(['archive-2']);
 
@@ -125,6 +134,18 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f5'), [
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => 7},
+	]);
+	eq_or_diff($db->get_archives_for_path('etc'), [
+		{archive => 'archive-1', modification_time => 3},
+		{archive => 'archive-2', modification_time => 3},
+	]);
+	eq_or_diff($db->get_archives_for_path('etc/foo'), [
+		{archive => 'archive-1', modification_time => 2},
+		{archive => 'archive-2', modification_time => 2},
+	]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [
+		{archive => 'archive-1', modification_time => 1},
+		{archive => 'archive-2', modification_time => 1},
 	]);
 	eq_or_diff($db->get_archives_for_path('lulz'), [
 		{archive => 'archive-1', modification_time => undef},
