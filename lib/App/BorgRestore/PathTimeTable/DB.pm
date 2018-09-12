@@ -90,23 +90,7 @@ method _add_path_to_db($archive_id, $path,$time) {
 
 method save_nodes() {
 	# flush remaining paths to the DB
-	my $old_cache_path = $self->{current_path_in_cache};
-	while ((my $slash_index = rindex($old_cache_path, "/")) != -1) {
-		$self->{stats}->{cache_invalidation_loop_iterations}++;
-		my $removed_time = delete $self->{cache}->{$old_cache_path};
-		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $removed_time);
-		# strip last part of path
-		$old_cache_path = substr($old_cache_path, 0, $slash_index);
-
-		# update parent timestamp
-		my $cached = $self->{cache}->{$old_cache_path};
-		if (!defined $cached || $cached < $removed_time) {
-			$log->tracef("Setting cache time for path '%s' to %d", $old_cache_path, $removed_time) if TRACE;
-			$self->{cache}->{$old_cache_path} = $removed_time;
-		}
-	}
-	# ensure that top level directory is also written
-	$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path});
+	$self->add_path(".", 0);
 
 	for my $key (keys %{$self->{stats}}) {
 		$log->debugf("Performance counter %s = %s", $key, $self->{stats}->{$key});
