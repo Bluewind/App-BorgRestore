@@ -68,6 +68,10 @@ method add_path($path, $time) {
 		}
 		$path = substr($path, 0, $slash_index);
 	}
+
+	# ensure that top level directory is also written
+	$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path}) unless $old_cache_path eq ".";
+
 	my $cached = $self->{cache}->{$path};
 	if (!defined $cached || $cached < $time) {
 		$log->tracef("Setting cache time for path '%s' to %d", $path, $time) if TRACE;
