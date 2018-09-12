@@ -69,8 +69,10 @@ method add_path($path, $time) {
 		$path = substr($path, 0, $slash_index);
 	}
 
-	# ensure that top level directory is also written
-	$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path}) unless $old_cache_path eq ".";
+	if ($old_cache_path ne substr($path, 0, length($old_cache_path))) {
+		# ensure that top level directory is also written
+		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path}) unless $old_cache_path eq ".";
+	}
 
 	my $cached = $self->{cache}->{$path};
 	if (!defined $cached || $cached < $time) {
