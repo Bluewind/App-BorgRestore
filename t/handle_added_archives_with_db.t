@@ -34,6 +34,7 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:03 etc");
 			$cb->("XXX, 1970-01-01 00:00:02 etc/foo");
 			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/bar");
+			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/blub");
 		} );
 
 	# Call the actual function we want to test
@@ -56,6 +57,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-1', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-1', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-1', modification_time => 1},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/blub'), [{archive => 'archive-1', modification_time => 1},]);
 	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-1', modification_time => undef},]);
 
 
@@ -146,6 +148,10 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [
 		{archive => 'archive-1', modification_time => 1},
 		{archive => 'archive-2', modification_time => 1},
+	]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/blub'), [
+		{archive => 'archive-1', modification_time => 1},
+		{archive => 'archive-2', modification_time => undef},
 	]);
 	eq_or_diff($db->get_archives_for_path('lulz'), [
 		{archive => 'archive-1', modification_time => undef},
