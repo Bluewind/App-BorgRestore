@@ -81,15 +81,16 @@ cache.
 
 =item C<$prepare_data_in_memory>
 
-Default: 1
+Default: 0
 
 When new archives are added to the cache, the modification time of each parent
 directory for a file's path are updated. If this setting is set to 1, these
 updates are done in memory before data is written to the database. If it is set
 to 0, any changes are written directly to the database. Many values are updated
 multiple time, thus writing directly to the database is slower, but preparing
-the data in memory may require a substaintial amount of memory. If you run into
-out-of-memory problem try setting this to 0.
+the data in memory may require a substaintial amount of memory.
+
+New in version 3.2.0. Deprecated in v3.2.0 for future removal possibly in v4.0.0.
 
 =back
 
@@ -104,7 +105,7 @@ out-of-memory problem try setting this to 0.
  	{regex => "^/", replacement => "mnt/snapshots/root/"},
  );
  $sqlite_cache_size = 2097152;
- $prepare_data_in_memory = 1;
+ $prepare_data_in_memory = 0;
 
  1; #ensure positive return value
 
@@ -127,7 +128,7 @@ our @backup_prefixes = (
 	{regex => "^/", replacement => ""},
 );
 our $sqlite_cache_size = 102400;
-our $prepare_data_in_memory = 1;
+our $prepare_data_in_memory = 0;
 
 method new_no_defaults($class: $deps = {}) {
 	my $self = {};
