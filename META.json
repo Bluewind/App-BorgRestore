@@ -93,7 +93,7 @@
          "web" : "https://github.com/Bluewind/App-BorgRestore"
       }
    },
-   "version" : "3.2.0",
+   "version" : "3.2.1",
    "x_serialization_backend" : "JSON::PP version 2.97001",
    "x_static_install" : 0
 }
