@@ -157,6 +157,29 @@ for my $in_memory (0,1) {
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => undef},
 	]);
+
+	# remove first archive
+	$app->_handle_removed_archives(['archive-2']);
+
+	# check database contents
+	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-2', modification_time => undef},]);
+	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-2', modification_time => 20},]);
+	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-2', modification_time => 19},]);
+	eq_or_diff($db->get_archives_for_path('boot/foo/bar'), [{archive => 'archive-2', modification_time => 19},]);
+	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), [{archive => 'archive-2', modification_time => 13},]);
+	eq_or_diff($db->get_archives_for_path('boot/grub'), [{archive => 'archive-2', modification_time => 20},]);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [{archive => 'archive-2', modification_time => 8},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1'), [{archive => 'archive-2', modification_time => 7},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1/f1'), [{archive => 'archive-2', modification_time => 3},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-2', modification_time => 5},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), [{archive => 'archive-2', modification_time => 3},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), [{archive => 'archive-2', modification_time => 2},]);
+	eq_or_diff($db->get_archives_for_path('boot/test1/f5'), [{archive => 'archive-2', modification_time => 7},]);
+	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-2', modification_time => 3},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-2', modification_time => 2},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-2', modification_time => 1},]);
+	eq_or_diff($db->get_archives_for_path('etc/foo/blub'), [{archive => 'archive-2', modification_time => undef},]);
+	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-2', modification_time => undef},]);
 }
 
 
