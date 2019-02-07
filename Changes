@@ -1,6 +1,7 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- Support borg list's --prefix option via $borg_prefix setting
 	- Properly handle cases where the DB is empty after removal of archive
 	  information
 
