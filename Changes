@@ -1,6 +1,8 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- Properly handle cases where the DB is empty after removal of archive
+	  information
 
 3.2.1 2018-11-01T12:54:26Z
 	- Add missing version requirement to List::Util dependency
