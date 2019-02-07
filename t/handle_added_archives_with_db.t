@@ -58,7 +58,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-1', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-1', modification_time => 1},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/blub'), [{archive => 'archive-1', modification_time => 1},]);
-	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-1', modification_time => undef},]);
+	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-1', modification_time => undef},], 'test non-existant path');
 
 
 	# add second archive
@@ -156,7 +156,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('lulz'), [
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => undef},
-	]);
+	], 'test non-existant path');
 
 	# remove first archive
 	$app->_handle_removed_archives(['archive-2']);
@@ -179,7 +179,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-2', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-2', modification_time => 1},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/blub'), [{archive => 'archive-2', modification_time => undef},]);
-	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-2', modification_time => undef},]);
+	eq_or_diff($db->get_archives_for_path('lulz'), [{archive => 'archive-2', modification_time => undef},], 'test non-existant path');
 }
 
 
