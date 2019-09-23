@@ -29,13 +29,11 @@ method new($class: $db_path, $cache_size) {
 
 	if ($db_path =~ /^:/) {
 		$self->_open_db($db_path);
-		$self->initialize_db();
 	} elsif (! -f $db_path) {
 		# ensure the cache directory exists
 		path($db_path)->parent->mkpath({mode => oct(700)});
 
 		$self->_open_db($db_path);
-		$self->initialize_db();
 	} else {
 		$self->_open_db($db_path);
 	}
@@ -48,16 +46,46 @@ method _open_db($dbfile) {
 	$log->debugf("Opening database at %s", $dbfile);
 	$self->{dbh} = DBI->connect("dbi:SQLite:dbname=$dbfile","","", {RaiseError => 1, Taint => 1});
 	$self->{dbh}->do("PRAGMA strict=ON");
+
+	$self->_migrate();
 }
 
 method set_cache_size() {
 	$self->{dbh}->do("PRAGMA cache_size=-".$self->{cache_size});
 }
 
-method initialize_db() {
-	$log->debug("Creating initial database");
-	$self->{dbh}->do('create table `files` (`path` text, primary key (`path`)) without rowid;');
-	$self->{dbh}->do('create table `archives` (`archive_name` text unique);');
+method _migrate() {
+	my $version = $self->_get_db_version();
+	$log->debugf("Current database schema version: %s", $version);
+
+	my $schema = {
+		1 => sub {
+			$self->{dbh}->do('create table if not exists `files` (`path` text, primary key (`path`)) without rowid;');
+			$self->{dbh}->do('create table if not exists `archives` (`archive_name` text unique);');
+		},
+	};
+
+	for my $target_version (keys %$schema) {
+		if ($version < $target_version) {
+			$log->debugf("Migrating to schema version %s", $target_version);
+			$self->{dbh}->begin_work();
+			$schema->{$target_version}->();
+			$self->_set_db_version($target_version);
+			$self->{dbh}->commit();
+			$log->debugf("Schema upgrade to version %s complete", $target_version);
+		}
+	}
+}
+
+method _get_db_version() {
+	my $st = $self->{dbh}->prepare("pragma user_version");
+	$st->execute();
+	return ($st->fetchrow_array)[0];
+}
+
+method _set_db_version($version) {
+	die 'Invalid version number' unless $version =~ m/^\d+$/;
+	my $st = $self->{dbh}->do("pragma user_version=$version");
 }
 
 method get_archive_names() {
