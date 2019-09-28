@@ -65,7 +65,7 @@ method _migrate() {
 		},
 	};
 
-	for my $target_version (keys %$schema) {
+	for my $target_version (sort { $a <=> $b } keys %$schema) {
 		if ($version < $target_version) {
 			$log->debugf("Migrating to schema version %s", $target_version);
 			$self->{dbh}->begin_work();
