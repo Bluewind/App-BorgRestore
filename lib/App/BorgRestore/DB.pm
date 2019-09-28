@@ -2,7 +2,7 @@ package App::BorgRestore::DB;
 use v5.14;
 use strictures 2;
 
-use App::BorgRestore::Helper;
+use App::BorgRestore::Helper qw(untaint);
 
 use autodie;
 use DBI;
@@ -76,7 +76,7 @@ method _migrate() {
 				# We trust all values here since they have already been
 				# sucessfully put into the DB previously. Thus they must be
 				# safe to deal with.
-				$archive = App::BorgRestore::Helper::untaint($archive, qr(.*));
+				$archive = untaint($archive, qr(.*));
 				my $archive_id = $self->get_archive_id($archive);
 				$self->{dbh}->do("alter table `files` rename column `timestamp-$archive` to `$archive_id`");
 			}
@@ -126,7 +126,7 @@ method get_archive_row_count() {
 
 method add_archive_name($archive) {
 	my $st = $self->{dbh}->prepare('insert into `archives` (`archive_name`) values (?);');
-	$st->execute(App::BorgRestore::Helper::untaint($archive, qr(.*)));
+	$st->execute(untaint($archive, qr(.*)));
 
 	$self->_add_column_to_table("files", $archive);
 }
@@ -168,20 +168,20 @@ method remove_archive($archive) {
 	}
 
 	my $st = $self->{dbh}->prepare('delete from `archives` where `archive_name` = ?;');
-	$st->execute(App::BorgRestore::Helper::untaint($archive, qr(.*)));
+	$st->execute(untaint($archive, qr(.*)));
 }
 
 method get_archive_id($archive) {
 	my $st = $self->{dbh}->prepare("select `id` from `archives` where `archive_name` = ?;");
-	$archive = App::BorgRestore::Helper::untaint($archive, qr(.*));
+	$archive = untaint($archive, qr(.*));
 	$st->execute($archive);
 	my $result = $st->fetchrow_hashref;
-	return App::BorgRestore::Helper::untaint($result->{id}, qr(.*));
+	return untaint($result->{id}, qr(.*));
 }
 
 method get_archives_for_path($path) {
 	my $st = $self->{dbh}->prepare('select * from `files` where `path` = ?;');
-	$st->execute(App::BorgRestore::Helper::untaint($path, qr(.*)));
+	$st->execute(untaint($path, qr(.*)));
 
 	my @ret;
 
