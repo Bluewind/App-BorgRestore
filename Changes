@@ -1,6 +1,8 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+
+3.4.0 2019-09-28T13:28:49Z
 	- Remove archive name untaint restrictions (remove untaint_archive_name
 	  function)
 
