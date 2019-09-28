@@ -329,7 +329,6 @@ process during method execution since this is required by C<`borg extract`>.
 method restore($path, $archive, $destination) {
 	$destination = App::BorgRestore::Helper::untaint($destination, qr(.*));
 	$path = App::BorgRestore::Helper::untaint($path, qr(.*));
-	my $archive_name = App::BorgRestore::Helper::untaint_archive_name($archive->{archive});
 
 	$log->infof("Restoring %s to %s from archive %s", $path, $destination, $archive->{archive});
 
@@ -346,7 +345,7 @@ method restore($path, $archive, $destination) {
 		$final_destination = App::BorgRestore::Helper::untaint($final_destination, qr(.*));
 		$log->debugf("Removing %s", $final_destination);
 		File::Path::remove_tree($final_destination);
-		$self->{deps}->{borg}->restore($components_to_strip, $archive_name, $path);
+		$self->{deps}->{borg}->restore($components_to_strip, $archive->{archive}, $path);
 	}
 	$log->debugf("CWD is %s", getcwd());
 }

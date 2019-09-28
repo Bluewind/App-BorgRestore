@@ -23,10 +23,6 @@ fun untaint($data, $regex) {
 	return $1;
 }
 
-fun untaint_archive_name($archive) {
-	return untaint($archive, qr([a-zA-Z0-9-:+\.]+));
-}
-
 fun format_timestamp($timestamp) {
 	return POSIX::strftime "%a. %F %H:%M:%S %z", localtime $timestamp;
 }

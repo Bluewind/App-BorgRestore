@@ -125,10 +125,8 @@ method get_archive_row_count() {
 }
 
 method add_archive_name($archive) {
-	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
-
 	my $st = $self->{dbh}->prepare('insert into `archives` (`archive_name`) values (?);');
-	$st->execute($archive);
+	$st->execute(App::BorgRestore::Helper::untaint($archive, qr(.*)));
 
 	$self->_add_column_to_table("files", $archive);
 }
@@ -139,8 +137,6 @@ method _add_column_to_table($table, $column) {
 }
 
 method remove_archive($archive) {
-	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
-
 	my $archive_id = $self->get_archive_id($archive);
 
 	my @keep_archives = grep {$_ ne $archive;} @{$self->get_archive_names()};
@@ -172,7 +168,7 @@ method remove_archive($archive) {
 	}
 
 	my $st = $self->{dbh}->prepare('delete from `archives` where `archive_name` = ?;');
-	$st->execute($archive);
+	$st->execute(App::BorgRestore::Helper::untaint($archive, qr(.*)));
 }
 
 method get_archive_id($archive) {
