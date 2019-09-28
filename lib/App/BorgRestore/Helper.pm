@@ -3,8 +3,11 @@ use v5.14;
 use strictures 2;
 
 use autodie;
+use Exporter 'import';
 use Function::Parameters;
 use POSIX ();
+
+our @EXPORT_OK = qw(untaint);
 
 =encoding utf-8
 
