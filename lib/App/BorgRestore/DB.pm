@@ -116,7 +116,7 @@ method add_archive_name($archive) {
 }
 
 method _add_column_to_table($table, $column) {
-	my $st = $self->{dbh}->prepare('alter table `'.$table.'` add column `'._prefix_archive_id($column).'` integer;');
+	my $st = $self->{dbh}->prepare('alter table `'.$table.'` add column `'.$self->get_archive_id($column).'` integer;');
 	$st->execute();
 }
 
@@ -132,7 +132,7 @@ method remove_archive($archive) {
 		$self->_add_column_to_table("files_new", $archive);
 	}
 
-	my @columns_to_copy = map {'`'._prefix_archive_id($_).'`'} @keep_archives;
+	my @columns_to_copy = map {'`'.$self->get_archive_id($_).'`'} @keep_archives;
 	my @timestamp_columns_to_copy = @columns_to_copy;
 	@columns_to_copy = ('`path`', @columns_to_copy);
 
