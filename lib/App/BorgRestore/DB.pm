@@ -63,6 +63,24 @@ method _migrate() {
 			$self->{dbh}->do('create table if not exists `files` (`path` text, primary key (`path`)) without rowid;');
 			$self->{dbh}->do('create table if not exists `archives` (`archive_name` text unique);');
 		},
+		2 => sub {
+			$self->{dbh}->do('alter table `archives` rename to `archives_old`');
+			$self->{dbh}->do('create table `archives` (`id` integer primary key autoincrement, `archive_name` text unique);');
+			$self->{dbh}->do('insert into `archives` select null, * from `archives_old`');
+			$self->{dbh}->do('drop table `archives_old`');
+
+			my $st = $self->{dbh}->prepare("select `archive_name` from `archives`;");
+			$st->execute();
+			while (my $result = $st->fetchrow_hashref) {
+				my $archive = $result->{archive_name};
+				# We trust all values here since they have already been
+				# sucessfully put into the DB previously. Thus they must be
+				# safe to deal with.
+				$archive = App::BorgRestore::Helper::untaint($archive, qr(.*));
+				my $archive_id = $self->get_archive_id($archive);
+				$self->{dbh}->do("alter table `files` rename column `timestamp-$archive` to `$archive_id`");
+			}
+},
 	};
 
 	for my $target_version (sort { $a <=> $b } keys %$schema) {
@@ -157,14 +175,12 @@ method remove_archive($archive) {
 	$st->execute($archive);
 }
 
-fun _prefix_archive_id($archive) {
-	$archive = App::BorgRestore::Helper::untaint_archive_name($archive);
-
-	return 'timestamp-'.$archive;
-}
-
 method get_archive_id($archive) {
-	return _prefix_archive_id($archive);
+	my $st = $self->{dbh}->prepare("select `id` from `archives` where `archive_name` = ?;");
+	$archive = App::BorgRestore::Helper::untaint($archive, qr(.*));
+	$st->execute($archive);
+	my $result = $st->fetchrow_hashref;
+	return App::BorgRestore::Helper::untaint($result->{id}, qr(.*));
 }
 
 method get_archives_for_path($path) {
