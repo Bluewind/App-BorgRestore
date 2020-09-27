@@ -1,6 +1,7 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- Add database migration for change from 3.4.2
 
 3.4.2 2020-09-27T13:50:47Z
 	- Fix missing cache data for top level files that exist with and without an
