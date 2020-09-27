@@ -1,3 +1,4 @@
+requires 'Carp::Assert';
 requires 'DBD::SQLite';
 requires 'DBI';
 requires 'Date::Parse';

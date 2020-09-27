@@ -43,6 +43,7 @@
       },
       "runtime" : {
          "requires" : {
+            "Carp::Assert" : "0",
             "DBD::SQLite" : "0",
             "DBI" : "0",
             "Date::Parse" : "0",
