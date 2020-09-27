@@ -1,6 +1,8 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+
+3.4.1 2020-09-27T12:57:01Z
 	- Fix missing cache data for files that exist with and without an
 	  extension. For example '/home/*/.ssh/id_rsa' would be missing from the
 	  database and only the accompanying `id_rsa.pub` file would be contained
