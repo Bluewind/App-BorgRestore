@@ -32,6 +32,7 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:04 boot/test1/f2");
 			$cb->("XXX, 1970-01-01 00:00:03 boot/test1/f3");
 			$cb->("XXX, 1970-01-01 00:00:02 boot/test1/f4");
+			$cb->("XXX, 1970-01-01 00:00:10 boot1");
 			$cb->("XXX, 1970-01-01 00:00:03 etc");
 			$cb->("XXX, 1970-01-01 00:00:02 etc/foo");
 			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/bar");
@@ -43,7 +44,7 @@ for my $in_memory (0,1) {
 	$app->_handle_added_archives(['archive-1']);
 
 	# check database content
-	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
+	is($db->get_archive_row_count(), 17, 'correct row count (17 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-1', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-1', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-1', modification_time => 19},]);
@@ -57,6 +58,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-1', modification_time => 4},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), [{archive => 'archive-1', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), [{archive => 'archive-1', modification_time => 2},]);
+	eq_or_diff($db->get_archives_for_path('boot1'), [{archive => 'archive-1', modification_time => 10},]);
 	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-1', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-1', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-1', modification_time => 1},]);
@@ -82,6 +84,7 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:03 boot/test1/f3");
 			$cb->("XXX, 1970-01-01 00:00:02 boot/test1/f4");
 			$cb->("XXX, 1970-01-01 00:00:07 boot/test1/f5");
+			$cb->("XXX, 1970-01-01 00:00:10 boot1");
 			$cb->("XXX, 1970-01-01 00:00:03 etc");
 			$cb->("XXX, 1970-01-01 00:00:02 etc/foo");
 			$cb->("XXX, 1970-01-01 00:00:01 etc/foo/bar");
@@ -89,7 +92,7 @@ for my $in_memory (0,1) {
 	$app->_handle_added_archives(['archive-2']);
 
 	# check database content
-	is($db->get_archive_row_count(), 17, 'correct row count (17 paths with timestamps)');
+	is($db->get_archive_row_count(), 18, 'correct row count (18 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => undef},
@@ -146,6 +149,10 @@ for my $in_memory (0,1) {
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => 7},
 	]);
+	eq_or_diff($db->get_archives_for_path('boot1'), [
+		{archive => 'archive-1', modification_time => 10},
+		{archive => 'archive-2', modification_time => 10},
+	]);
 	eq_or_diff($db->get_archives_for_path('etc'), [
 		{archive => 'archive-1', modification_time => 3},
 		{archive => 'archive-2', modification_time => 3},
@@ -171,7 +178,7 @@ for my $in_memory (0,1) {
 	$app->_handle_removed_archives(['archive-2']);
 
 	# check database contents
-	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
+	is($db->get_archive_row_count(), 17, 'correct row count (17 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-2', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-2', modification_time => 19},]);
@@ -186,6 +193,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), [{archive => 'archive-2', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f5'), [{archive => 'archive-2', modification_time => 7},]);
+	eq_or_diff($db->get_archives_for_path('boot1'), [{archive => 'archive-2', modification_time => 10},]);
 	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-2', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-2', modification_time => 1},]);
@@ -194,7 +202,7 @@ for my $in_memory (0,1) {
 
 	# run remove again. shouldn't change anything
 	$app->_handle_removed_archives(['archive-2']);
-	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
+	is($db->get_archive_row_count(), 17, 'correct row count (17 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-2', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-2', modification_time => 19},]);
@@ -209,6 +217,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), [{archive => 'archive-2', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f5'), [{archive => 'archive-2', modification_time => 7},]);
+	eq_or_diff($db->get_archives_for_path('boot1'), [{archive => 'archive-2', modification_time => 10},]);
 	eq_or_diff($db->get_archives_for_path('etc'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo'), [{archive => 'archive-2', modification_time => 2},]);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), [{archive => 'archive-2', modification_time => 1},]);
@@ -234,6 +243,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/test1/f3'), []);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f4'), []);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f5'), []);
+	eq_or_diff($db->get_archives_for_path('boot1'), []);
 	eq_or_diff($db->get_archives_for_path('etc'), []);
 	eq_or_diff($db->get_archives_for_path('etc/foo'), []);
 	eq_or_diff($db->get_archives_for_path('etc/foo/bar'), []);

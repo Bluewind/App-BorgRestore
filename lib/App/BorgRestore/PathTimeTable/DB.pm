@@ -100,9 +100,10 @@ method add_path($path, $time) {
 	}
 	$log->tracef("Cache invalidation complete") if TRACE;
 
-	if ($old_cache_path ne substr($path, 0, length($old_cache_path))) {
+	my $cache_check_path = $old_cache_path.'/';
+	if ($cache_check_path ne substr($path, 0, length($cache_check_path))) {
 		# ensure that top level directory is also written
-		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path}) unless $old_cache_path eq ".";
+		$self->_add_path_to_db($self->{archive_id}, $old_cache_path, $self->{cache}->{$old_cache_path}) unless ($old_cache_path eq "." or $old_cache_path eq '');
 	}
 
 	my $cached = $self->{cache}->{$path};
