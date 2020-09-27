@@ -1,6 +1,10 @@
 Revision history for Perl extension App-BorgRestore
 
 {{$NEXT}}
+	- Fix missing cache data for files that exist with and without an
+	  extension. For example '/home/*/.ssh/id_rsa' would be missing from the
+	  database and only the accompanying `id_rsa.pub` file would be contained
+	  in the database.
 
 3.4.0 2019-09-28T13:28:49Z
 	- Remove archive name untaint restrictions (remove untaint_archive_name

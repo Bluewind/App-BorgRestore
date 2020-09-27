@@ -23,6 +23,7 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:10 boot");
 			$cb->("XXX, 1970-01-01 00:00:20 boot/grub");
 			$cb->("XXX, 1970-01-01 00:00:08 boot/grub/grub.cfg");
+			$cb->("XXX, 1970-01-01 00:00:09 boot/grub/grub.cfg.sig");
 			$cb->("XXX, 1970-01-01 00:00:13 boot/foo");
 			$cb->("XXX, 1970-01-01 00:00:13 boot/foo/blub");
 			$cb->("XXX, 1970-01-01 00:00:19 boot/foo/bar");
@@ -42,7 +43,7 @@ for my $in_memory (0,1) {
 	$app->_handle_added_archives(['archive-1']);
 
 	# check database content
-	is($db->get_archive_row_count(), 15, 'correct row count (15 paths with timestamps)');
+	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-1', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-1', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-1', modification_time => 19},]);
@@ -50,6 +51,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), [{archive => 'archive-1', modification_time => 13},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub'), [{archive => 'archive-1', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [{archive => 'archive-1', modification_time => 8},]);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg.sig'), [{archive => 'archive-1', modification_time => 9},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1'), [{archive => 'archive-1', modification_time => 4},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f1'), [{archive => 'archive-1', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-1', modification_time => 4},]);
@@ -70,6 +72,7 @@ for my $in_memory (0,1) {
 			$cb->("XXX, 1970-01-01 00:00:10 boot");
 			$cb->("XXX, 1970-01-01 00:00:20 boot/grub");
 			$cb->("XXX, 1970-01-01 00:00:08 boot/grub/grub.cfg");
+			$cb->("XXX, 1970-01-01 00:00:09 boot/grub/grub.cfg.sig");
 			$cb->("XXX, 1970-01-01 00:00:13 boot/foo");
 			$cb->("XXX, 1970-01-01 00:00:13 boot/foo/blub");
 			$cb->("XXX, 1970-01-01 00:00:19 boot/foo/bar");
@@ -86,7 +89,7 @@ for my $in_memory (0,1) {
 	$app->_handle_added_archives(['archive-2']);
 
 	# check database content
-	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
+	is($db->get_archive_row_count(), 17, 'correct row count (17 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [
 		{archive => 'archive-1', modification_time => undef},
 		{archive => 'archive-2', modification_time => undef},
@@ -114,6 +117,10 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [
 		{archive => 'archive-1', modification_time => 8},
 		{archive => 'archive-2', modification_time => 8},
+	]);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg.sig'), [
+		{archive => 'archive-1', modification_time => 9},
+		{archive => 'archive-2', modification_time => 9},
 	]);
 	eq_or_diff($db->get_archives_for_path('boot/test1'), [
 		{archive => 'archive-1', modification_time => 4},
@@ -164,7 +171,7 @@ for my $in_memory (0,1) {
 	$app->_handle_removed_archives(['archive-2']);
 
 	# check database contents
-	is($db->get_archive_row_count(), 15, 'correct row count (15 paths with timestamps)');
+	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-2', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-2', modification_time => 19},]);
@@ -172,6 +179,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), [{archive => 'archive-2', modification_time => 13},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [{archive => 'archive-2', modification_time => 8},]);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg.sig'), [{archive => 'archive-2', modification_time => 9},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1'), [{archive => 'archive-2', modification_time => 7},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f1'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-2', modification_time => 5},]);
@@ -186,7 +194,7 @@ for my $in_memory (0,1) {
 
 	# run remove again. shouldn't change anything
 	$app->_handle_removed_archives(['archive-2']);
-	is($db->get_archive_row_count(), 15, 'correct row count (15 paths with timestamps)');
+	is($db->get_archive_row_count(), 16, 'correct row count (16 paths with timestamps)');
 	eq_or_diff($db->get_archives_for_path('.'), [{archive => 'archive-2', modification_time => undef},]);
 	eq_or_diff($db->get_archives_for_path('boot'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/foo'), [{archive => 'archive-2', modification_time => 19},]);
@@ -194,6 +202,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), [{archive => 'archive-2', modification_time => 13},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub'), [{archive => 'archive-2', modification_time => 20},]);
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), [{archive => 'archive-2', modification_time => 8},]);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg.sig'), [{archive => 'archive-2', modification_time => 9},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1'), [{archive => 'archive-2', modification_time => 7},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f1'), [{archive => 'archive-2', modification_time => 3},]);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), [{archive => 'archive-2', modification_time => 5},]);
@@ -218,6 +227,7 @@ for my $in_memory (0,1) {
 	eq_or_diff($db->get_archives_for_path('boot/foo/blub'), []);
 	eq_or_diff($db->get_archives_for_path('boot/grub'), []);
 	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg'), []);
+	eq_or_diff($db->get_archives_for_path('boot/grub/grub.cfg.sig'), []);
 	eq_or_diff($db->get_archives_for_path('boot/test1'), []);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f1'), []);
 	eq_or_diff($db->get_archives_for_path('boot/test1/f2'), []);
