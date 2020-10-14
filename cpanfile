@@ -1,5 +1,5 @@
 requires 'Carp::Assert';
-requires 'DBD::SQLite';
+requires 'DBD::SQLite', '1.60';
 requires 'DBI';
 requires 'Date::Parse';
 requires 'File::pushd';
