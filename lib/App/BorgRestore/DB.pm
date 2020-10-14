@@ -96,6 +96,7 @@ method _migrate() {
 			$self->{dbh}->do('delete from `files`');
 		},
 	};
+	my $ran_migrations = 0;
 
 	for my $target_version (sort { $a <=> $b } keys %$schema) {
 		if ($version < $target_version) {
@@ -105,7 +106,12 @@ method _migrate() {
 			$self->_set_db_version($target_version);
 			$self->{dbh}->commit();
 			$log->debugf("Schema upgrade to version %s complete", $target_version);
+			$ran_migrations = 1;
 		}
+	}
+	if ($ran_migrations) {
+		$log->debug("Vacuuming database");
+		$self->{dbh}->do("vacuum");
 	}
 }
 
