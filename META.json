@@ -44,7 +44,7 @@
       "runtime" : {
          "requires" : {
             "Carp::Assert" : "0",
-            "DBD::SQLite" : "0",
+            "DBD::SQLite" : "1.60",
             "DBI" : "0",
             "Date::Parse" : "0",
             "File::pushd" : "0",
@@ -94,7 +94,7 @@
          "web" : "https://github.com/Bluewind/App-BorgRestore"
       }
    },
-   "version" : "3.4.3",
+   "version" : "3.4.4",
    "x_serialization_backend" : "JSON::PP version 4.04",
    "x_static_install" : 0
 }
