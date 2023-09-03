@@ -1,10 +1,10 @@
 {
    "abstract" : "Restore paths from borg backups",
    "author" : [
-      "-2018  Florian Pritz <bluewind@xinu.at>"
+      "Florian Pritz <bluewind@xinu.at>"
    ],
    "dynamic_config" : 0,
-   "generated_by" : "Minilla/v3.1.10, CPAN::Meta::Converter version 2.150010",
+   "generated_by" : "Minilla/v3.1.22, CPAN::Meta::Converter version 2.150010",
    "license" : [
       "gpl_3"
    ],
@@ -90,11 +90,11 @@
       "homepage" : "https://github.com/Bluewind/App-BorgRestore",
       "repository" : {
          "type" : "git",
-         "url" : "git://github.com/Bluewind/App-BorgRestore.git",
+         "url" : "https://github.com/Bluewind/App-BorgRestore.git",
          "web" : "https://github.com/Bluewind/App-BorgRestore"
       }
    },
    "version" : "3.4.4",
-   "x_serialization_backend" : "JSON::PP version 4.04",
+   "x_serialization_backend" : "JSON::PP version 4.07",
    "x_static_install" : 0
 }
